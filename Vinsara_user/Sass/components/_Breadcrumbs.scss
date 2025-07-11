@@ -1,0 +1,14 @@
+@use "../abstract/variables" as var;
+
+.breadcrumb-component {
+  margin-bottom: 1rem;
+  color: #666;
+  font-size: 0.875rem;
+
+  span {
+    &:last-child {
+      color: var.$color-primary;
+      margin-left: 0.2rem;
+    }
+  }
+}

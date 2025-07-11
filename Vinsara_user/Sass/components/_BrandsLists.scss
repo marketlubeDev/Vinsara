@@ -1,0 +1,242 @@
+.brands-list {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  width: 100%;
+  background: white;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-10px);
+  transition: all 0.3s ease;
+  z-index: 1000;
+
+  &.open {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .brands-container {
+    // max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+    display: grid;
+    grid-template-columns: repeat(4, 1fr) 200px;
+    gap: 2rem;
+  }
+
+  .brands-section {
+    h3 {
+      color: #31B19B;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+      font-weight: 600;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+
+      li {
+        margin-bottom: 1rem;
+
+        h4 {
+          font-size: 1rem;
+          margin-bottom: 0.25rem;
+          color: #333;
+        }
+
+        p {
+          font-size: 0.875rem;
+          color: #666;
+        }
+      }
+    }
+  }
+
+  .shop-all {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: flex-start;
+
+    h3 {
+      color: #333;
+      font-size: 1.2rem;
+      margin-bottom: 1rem;
+    }
+
+    .shop-now-btn {
+      background-color: #31B19B;
+      color: white;
+      padding: 0.75rem 1.5rem;
+      border-radius: 4px;
+      text-decoration: none;
+      font-weight: 500;
+      transition: background-color 0.3s ease;
+
+      &:hover {
+        background-color: darken(#31B19B, 10%);
+      }
+    }
+  }
+}
+
+.image-container {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background-color: #f5f5f5;
+  border-radius: 8px;
+  overflow: hidden;
+
+  .image-placeholder {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+  }
+
+  .image-error {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f8f8f8;
+    color: #666;
+    font-size: 0.9rem;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: opacity 0.3s ease;
+
+    &.hidden {
+      opacity: 0;
+    }
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -468px 0;
+  }
+  100% {
+    background-position: 468px 0;
+  }
+}
+
+@keyframes flow {
+  0% {
+    transform: translateX(-100%);
+  }
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  .skeleton-image {
+    width: 100%;
+    height: 100%;
+    background-color: #f0f0f0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    min-height: 200px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.6),
+        transparent
+      );
+      animation: flow 1.5s infinite;
+    }
+  }
+
+  .skeleton-text {
+    height: 24px;
+    width: 85%;
+    margin: 12px auto;
+    background-color: #f0f0f0;
+    position: relative;
+    overflow: hidden;
+    border-radius: 4px;
+
+    &::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 50%;
+      height: 100%;
+      background: linear-gradient(
+        90deg,
+        transparent,
+        rgba(255, 255, 255, 0.6),
+        transparent
+      );
+      animation: flow 1.5s infinite;
+    }
+  }
+
+  &.content-item {
+    cursor: default;
+    
+    .content-overlay {
+      background: transparent;
+      opacity: 1;
+      padding: 8px;
+    }
+  }
+}
+
+// Responsive Design
+@media (max-width: 1024px) {
+  .brands-list {
+    .brands-container {
+      grid-template-columns: repeat(2, 1fr);
+      padding: 1.5rem;
+    }
+
+    .shop-all {
+      grid-column: span 2;
+      align-items: center;
+    }
+  }
+}
+
+@media (max-width: 640px) {
+  .brands-list {
+    .brands-container {
+      grid-template-columns: 1fr;
+      padding: 1rem;
+    }
+
+    .shop-all {
+      grid-column: span 1;
+    }
+  }
+}

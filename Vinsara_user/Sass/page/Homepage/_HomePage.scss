@@ -1,0 +1,10 @@
+.divider-home {
+  width: 80%;
+  height: 0px;
+  border: 1px solid #e5e5e5;
+  margin: 1rem auto;
+
+  @media (max-width: 768px) {
+    width: 90%;
+  }
+}

@@ -1,0 +1,90 @@
+@use "../abstract/variables" as var;
+
+.loading-spinner-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  width: 100%;
+}
+
+.saw-spinner {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.saw-blade {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  background: #333;
+  position: relative;
+  animation: spin 2s linear infinite;
+
+  &::before {
+    content: "";
+    position: absolute;
+    width: 80%;
+    height: 80%;
+    background: #fff;
+    border-radius: 50%;
+    top: 10%;
+    left: 10%;
+  }
+
+  &::after {
+    content: "";
+    position: absolute;
+    width: 30%;
+    height: 30%;
+    background: var.$color-primary;
+    border-radius: 50%;
+    top: 35%;
+    left: 35%;
+  }
+}
+
+.saw-text {
+  position: absolute;
+  color: #333;
+  font-weight: bold;
+  font-size: 0.8rem;
+  text-align: center;
+  width: 100%;
+  animation: no-spin 2s linear infinite;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes no-spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(0deg);
+  }
+}
+
+// Add saw teeth
+.saw-blade {
+  &::before {
+    box-shadow: 0 0 0 12px #333;
+  }
+
+  // Create saw teeth effect using multiple box-shadows
+  &::after {
+    box-shadow: 0 -45px 0 -15px #333, 32px -32px 0 -15px #333,
+      45px 0 0 -15px #333, 32px 32px 0 -15px #333, 0 45px 0 -15px #333,
+      -32px 32px 0 -15px #333, -45px 0 0 -15px #333, -32px -32px 0 -15px #333;
+  }
+}
