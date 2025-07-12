@@ -1,8 +1,6 @@
-import React, { useState } from "react";
-import { useBrands } from "../../../hooks/queries/brands";
-import LoadingSpinner from "../../../components/LoadingSpinner";
+import React from "react";
 import { useCategories } from "../../../hooks/queries/categories";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 
 const CardSkeleton = () => (
   <div className="content-item skeleton">
@@ -14,8 +12,8 @@ const CardSkeleton = () => (
 );
 
 const ImageWithFallback = ({ src, alt, className }) => {
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [isLoading, setIsLoading] = React.useState(true);
+  const [error, setError] = React.useState(false);
 
   const handleLoad = () => {
     setIsLoading(false);
@@ -49,21 +47,13 @@ const ImageWithFallback = ({ src, alt, className }) => {
 };
 
 const ShopBy = () => {
-  const [activeTab, setActiveTab] = useState("categories");
-  const [isTabLoading, setIsTabLoading] = useState(false);
   const navigate = useNavigate();
-  const {
-    data: brandsData,
-    isLoading: brandsLoading,
-    isError: brandsError,
-  } = useBrands();
   const {
     data: categoriesData,
     isLoading: categoriesLoading,
     isError: categoriesError,
   } = useCategories();
 
-  const brands = brandsData?.data.brands;
   const categories = categoriesData?.envelop?.data;
 
   const handleCategoryClick = (category) => {
@@ -77,14 +67,6 @@ const ShopBy = () => {
     });
   };
 
-  const handleTabChange = (tab) => {
-    setIsTabLoading(true);
-    setActiveTab(tab);
-    setTimeout(() => {
-      setIsTabLoading(false);
-    }, 300);
-  };
-
   const renderSkeletons = (count) => {
     return Array(count).fill(0).map((_, index) => (
       <CardSkeleton key={index} />
@@ -93,50 +75,8 @@ const ShopBy = () => {
 
   return (
     <section className="shop-by">
-      <h2>Shop By</h2>
-      <div className="tabs">
-        <button
-          className={`tab-btn ${activeTab === "categories" ? "active" : ""}`}
-          onClick={() => handleTabChange("categories")}
-        >
-          Categories
-        </button>
-        <button
-          className={`tab-btn ${activeTab === "brands" ? "active" : ""}`}
-          onClick={() => handleTabChange("brands")}
-        >
-          Brands
-        </button>
-      </div>
-      {isTabLoading ? (
-        <div className="content">
-          {renderSkeletons(activeTab === "brands" ? 10 : 6)}
-        </div>
-      ) : activeTab === "brands" ? (
-        brandsLoading ? (
-          <div className="content">
-            {renderSkeletons(10)}
-          </div>
-        ) : (
-          <div className="content">
-            {brands?.slice(0, 10)?.map((brand, index) => (
-              <div
-                onClick={() => navigate(`/brands/${brand._id}`)}
-                key={index}
-                className="content-item"
-              >
-                <ImageWithFallback
-                  src={brand.image}
-                  alt={brand.name}
-                  className="content-image"
-                />
-                <div className="content-overlay"></div>
-                <h3 className="content-name">{brand.name}</h3>
-              </div>
-            ))}
-          </div>
-        )
-      ) : categoriesLoading ? (
+      <h2>Shop By <span>Category</span></h2>
+      {categoriesLoading ? (
         <div className="content">
           {renderSkeletons(6)}
         </div>
@@ -159,13 +99,6 @@ const ShopBy = () => {
               </div>
             </div>
           ))}
-        </div>
-      )}
-      {activeTab === "brands" && (
-        <div className="browse-all">
-          <button onClick={() => navigate("/brands")} className="browse-button">
-            View all Brands →
-          </button>
         </div>
       )}
     </section>

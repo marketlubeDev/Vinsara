@@ -59,8 +59,8 @@ function LoginComponent({ role }) {
 
   return (
     <div className="h-screen flex items-center w-full">
-      <div className="w-1/2 bg-[#FFF2AE] h-full hidden md:flex  items-center justify-center">
-        <img src="/images/logo.png" alt="logo image" className="w-[40rem]" />
+      <div className="w-1/2 bg-[#13131d] h-full hidden md:flex  items-center justify-center">
+        <img src="/logo/Logo.svg" alt="logo image" className="w-[40rem]" />
       </div>
       <div className="w-full md:w-1/2 flex justify-center p-3 md:p-0">
         <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
@@ -120,7 +120,7 @@ function LoginComponent({ role }) {
 
               <button
                 type="button"
-                className={`text-white w-full bg-gradient-to-r from-green-400 via-green-500 to-green-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-green-300 dark:focus:ring-green-800 font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ${
+                className={`text-white w-full bg-[#ddc062] hover:bg-[#ddc062] focus:ring-4 focus:outline-none focus:ring-[#ddc062] dark:focus:ring-[#ddc062] font-medium rounded-lg text-sm px-5 py-2.5 text-center me-2 mb-2 ${
                   isLoading ? "opacity-75 cursor-not-allowed" : ""
                 }`}
                 onClick={onlogin}

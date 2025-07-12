@@ -164,7 +164,7 @@ export const NavBar = () => {
           <li onClick={() => handleCategoryClick({ id: null, name: "All" })}>
             ALL
           </li>
-          <li
+          {/* <li
             onMouseEnter={() => handleCategoryHover(brands, "brands", "brands")}
             onClick={() =>
               window.innerWidth >= 768
@@ -180,7 +180,7 @@ export const NavBar = () => {
                 transition: "transform 0.3s ease",
               }}
             ></span>
-          </li>
+          </li> */}
           {categories.map((category) => (
             <li
               key={category._id}

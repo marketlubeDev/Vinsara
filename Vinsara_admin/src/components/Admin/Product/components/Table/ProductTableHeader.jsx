@@ -37,9 +37,7 @@ const ProductTableHeader = ({
         <th scope="col" className="px-6 py-3">
           Product name
         </th>
-        <th scope="col" className="px-6 py-3">
-          Brand
-        </th>
+       
 
         <th scope="col" className="px-6 py-3">
           Category

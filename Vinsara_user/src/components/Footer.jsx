@@ -174,7 +174,7 @@ function Footer() {
       <div className="footer-main">
         {/* Brand Section */}
         <div className="footer-brand">
-          <img src={Logo} alt="Mill Store Logo" />
+          <img src={"/logo/Logo.svg"} alt="Vinsara Logo" />
         </div>
 
         <div className="footer-links-group">
@@ -233,24 +233,18 @@ function Footer() {
             <h4>Contact</h4>
             <ul>
               <li>
-                <span>Northlux</span>
+                <span>VINSARA VENTURES LLP</span>
               </li>
               <li className="address">
-                Triangle magnum 2 
+              38/1553/A, KANNANCHERI
               </li>
               <li className="address">
-              Balan k Nair road, Ashokapuram 
+              (PO) KALLAI, KOZHIKODE 
               </li>
               <li className="address">
-              Kozhikode,  673 006
+              KERALA,  673003 
               </li>
-       
-              <li>
-                <a href="mailto:northlux@gmail.com">northlux@gmail.com</a>
-              </li>
-              <li>
-                <a href="#">Support & FAQ</a>
-              </li>
+              <li className="address"> 7012617749</li>
             </ul>
           </div>
         </div>
@@ -265,7 +259,7 @@ function Footer() {
           {/* <a href="https://www.facebook.com/" target="_blank">
             <FaFacebookF />
           </a> */}
-          <a href="https://www.instagram.com/_northlux/" target="_blank">
+          <a href="#" target="_blank">
             <FaInstagram />
           </a>
           {/* <a href="https://www.youtube.com/" target="_blank">
@@ -274,7 +268,7 @@ function Footer() {
         </div>
 
         <p>
-          © 2025 <span className="footer-brand-name">Northlux</span> All rights
+          © 2025 <span className="footer-brand-name">Vinsara</span> All rights
           reserved
         </p>
 

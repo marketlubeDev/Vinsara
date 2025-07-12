@@ -62,7 +62,7 @@ export default function Sections({ label }) {
         <div className="trending-content">
           <h2>
             {label?.label?.name?.split(' ').map((word, index, array) => (
-              <span key={index} style={{color: index === array.length - 1 && index !== 0 ? '#2eb5af' : 'black'}}>
+              <span key={index} style={{color: index === array.length - 1 && index !== 0 ? 'var(--color-primary)' : 'black'}}>
                 {word.charAt(0).toUpperCase() + word.slice(1)}{' '}
               </span>
             ))}

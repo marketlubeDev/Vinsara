@@ -238,41 +238,7 @@ function Products({ role }) {
     <div className="flex flex-col min-h-screen bg-gray-100 relative">
       <PageHeader content="Products" marginBottom="mb-0" />
       <div className="bg-white p-4 shadow flex gap-2 flex-wrap">
-        <div className="text-sm text-gray-600 space-y-1">
-          <select
-            value={selectedStore}
-            onChange={(e) => {
-              setSelectedStore(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border border-gray-300 rounded-md px-4 py-2 w-60"
-            disabled={role === "store"}
-          >
-            <option value="All Stores">All Stores</option>
-            {stores?.map((store) => (
-              <option key={store._id} value={store._id}>
-                {store?.store_name}
-              </option>
-            ))}
-          </select>
-        </div>
-        <div className="text-sm text-gray-600 space-y-1">
-          <select
-            value={selectedBrand}
-            onChange={(e) => {
-              setSelectedBrand(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="border border-gray-300 rounded-md px-4 py-2 w-60"
-          >
-            <option value="All Brands">All Brands</option>
-            {brands?.map((brand) => (
-              <option key={brand._id} value={brand._id}>
-                {brand?.name}
-              </option>
-            ))}
-          </select>
-        </div>
+  
         <div className="text-sm text-gray-600 space-y-1">
           <select
             value={selectedCategory}

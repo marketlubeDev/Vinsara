@@ -84,7 +84,6 @@ const ProductTableRow = ({
             ? product?.name?.split(" ").slice(0, 4).join(" ") + "..."
             : product?.name}
         </th>
-        <td className="px-6 py-4">{product?.brand?.name}</td>
         <td className="px-6 py-4">{product?.category?.name}</td>
         <td className="px-6 py-4 ">
           {product?.activeStatus ? (

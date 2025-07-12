@@ -15,6 +15,7 @@ import BestSellerv2 from "./components/BestSellerv2";
 function Homepage() {
   const { allBanners, isLoading } = useBanners();
   const { offerBanner, isLoading: offerBannerLoading } = useOfferBanner();
+  console.log(offerBanner , "Offer Banner>>");
 
   const { activeOffers, isLoading: activeOffersLoading } = useActiveOffers();
   const { data: groupLabels } = useGroupLabels();

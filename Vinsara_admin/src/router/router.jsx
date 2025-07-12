@@ -26,12 +26,12 @@ import Subcategories from "../pages/admin/Subcategories";
 import { Feedback } from "../pages/admin/Feedback";
 import Enquiry from "../pages/admin/Enquiry";
 export const router = createBrowserRouter([
+  // {
+  //   path: "/",
+  //   element: <Landingpage />,
+  // },
   {
     path: "/",
-    element: <Landingpage />,
-  },
-  {
-    path: "/admin/login",
     element: <LoginComponent role={"admin"} />,
   },
   {

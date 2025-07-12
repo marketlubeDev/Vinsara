@@ -38,10 +38,8 @@ function Addproduct() {
     },
   ]);
   const [activeVariant, setActiveVariant] = useState(0);
-  const [brands, setBrands] = useState([]);
   const [categories, setCategories] = useState([]);
   const [subcategories, setSubcategories] = useState([]);
-  const [stores, setStores] = useState([]);
   const [labels, setLabels] = useState([]);
   const [showSubcategory, setShowSubcategory] = useState([]);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -66,10 +64,8 @@ function Addproduct() {
     const fetchUtilities = async () => {
       try {
         const response = await adminUtilities();
-        setBrands(response?.data.brands);
         setCategories(response?.data.categories);
         setSubcategories(response?.data.subcategories);
-        setStores(response?.data.stores);
         setLabels(response?.data.labels);
       } catch (error) {
         console.log(error);
@@ -88,7 +84,7 @@ function Addproduct() {
           const prod = res.data;
           setProductData({
             name: prod.name || "",
-            brand: prod.brand?._id || "",
+            // brand: prod.brand?._id || "",
             category: prod.category?._id || "",
             subcategory: prod.subcategory?._id || "",
             store: prod.store?._id || "",
@@ -226,7 +222,7 @@ function Addproduct() {
     setIsLoading(true);
 
     // Validate the product data
-    const validationErrors = validateProduct(productData, variants);
+    const validationErrors = validateProduct(productData, variants , categories);
     
     if (Object.keys(validationErrors).length > 0) {
       // Separate product and variant errors
@@ -354,7 +350,7 @@ function Addproduct() {
 
         {/* Brand, Category, Subcategory */}
         <div className="flex gap-4 mb-4">
-          <div className="flex-1">
+          {/* <div className="flex-1">
             <label className="block mb-1 font-medium">Brand</label>
             <select
               name="brand"
@@ -368,7 +364,7 @@ function Addproduct() {
               ))}
             </select>
             {getError('brand') && <p className="text-red-500 text-sm mt-1">{getError('brand')}</p>}
-          </div>
+          </div> */}
           <div className="flex-1">
             <label className="block mb-1 font-medium">Category</label>
             <select 
@@ -399,25 +395,6 @@ function Addproduct() {
             </select>
             {getError('subcategory') && <p className="text-red-500 text-sm mt-1">{getError('subcategory')}</p>}
           </div>
-        </div>
-        {/* Store, Label */}
-        <div className="flex gap-4 mb-4">
-          <div className="flex-1">
-            <label className="block mb-1 font-medium">Store</label>
-            <select 
-              className={`w-full border rounded-lg px-3 py-2 ${getError('store') ? 'border-red-500' : ''}`} 
-              name="store" 
-              value={productData.store} 
-              onChange={handleProductChange}
-              disabled = {store && Object.keys(store).length > 0}
-            >
-              <option value="" disabled>Select Store</option>
-              {stores.map((store) => (
-                <option key={store._id} value={store._id}>{store.store_name}</option>
-              ))}
-            </select>
-            {getError('store') && <p className="text-red-500 text-sm mt-1">{getError('store')}</p>}
-          </div>
           <div className="flex-1">
             <label className="block mb-1 font-medium">Label</label>
             <select 
@@ -433,6 +410,26 @@ function Addproduct() {
             </select>
             {getError('label') && <p className="text-red-500 text-sm mt-1">{getError('label')}</p>}
           </div>
+        </div>
+        {/* Store, Label */}
+        <div className="flex gap-4 mb-4">
+          {/* <div className="flex-1">
+            <label className="block mb-1 font-medium">Store</label>
+            <select 
+              className={`w-full border rounded-lg px-3 py-2 ${getError('store') ? 'border-red-500' : ''}`} 
+              name="store" 
+              value={productData.store} 
+              onChange={handleProductChange}
+              disabled = {store && Object.keys(store).length > 0}
+            >
+              <option value="" disabled>Select Store</option>
+              {stores.map((store) => (
+                <option key={store._id} value={store._id}>{store.store_name}</option>
+              ))}
+            </select>
+            {getError('store') && <p className="text-red-500 text-sm mt-1">{getError('store')}</p>}
+          </div> */}
+          
         </div>
         {/* Variant Tabs */}
         <div className="flex gap-2 mb-4 items-center flex-wrap">

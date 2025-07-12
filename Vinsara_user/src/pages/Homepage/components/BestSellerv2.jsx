@@ -20,7 +20,7 @@ function BestSellerv2() {
   const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
   const { data, isLoading, error } = useProducts({
-    labelId: '67e10f6c5b3d36dda0b0c4cc',
+    labelId: '68723066667a8920874a83ee',
   });
 
   if (isLoading) return <div><LoadingSpinner /></div>;
@@ -36,7 +36,7 @@ function BestSellerv2() {
   const handleViewAll = () => {
     navigate("/products", {
       state: {
-        selectedLabel:{ _id: '67e10f6c5b3d36dda0b0c4cc', name: 'Best Sellers' }
+        selectedLabel:{ _id: '68723066667a8920874a83ee', name: 'Best Sellers' }
       },
     });
   };

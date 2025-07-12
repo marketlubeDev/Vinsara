@@ -1,12 +1,11 @@
-export const validateProduct = (productData, variants) => {
+export const validateProduct = (productData, variants , categories) => {
   const errors = {};
+  const category = categories?.find(c => c._id === productData.category);
   // Product level validations
   if (!productData.name?.trim()) errors.name = "Product name is required";
-  if (!productData.brand) errors.brand = "Brand is required";
   if (!productData.category) errors.category = "Category is required";
-  if (!productData.subcategory) errors.subcategory = "Subcategory is required";
+  if (!productData.subcategory && category?.subcategories?.length > 0) errors.subcategory = "Subcategory is required";
   if (!productData.label) errors.label = "Label is required";
-  if (!productData.store) errors.store = "Store is required";
 
   // Validate variants
   if (!variants || variants.length === 0) {

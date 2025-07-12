@@ -63,7 +63,7 @@
         transition: all 0.3s ease;
 
         &.active {
-          background-color: #2eb5af;
+          background-color: var.$color-primary;
           width: 24px;
         }
       }
@@ -132,7 +132,7 @@
         gap: 0.5rem;
 
         .current-price {
-          color: #2eb5af;
+          color: var.$color-primary;
           font-weight: 600;
         }
         .original-price {
@@ -140,7 +140,7 @@
           color: #666;
         }
         .discount-tag {
-          background: #2eb5af;
+          background: var.$color-primary;
           color: #fff;
           font-weight: 500;
           border-radius: 4px;
@@ -152,7 +152,7 @@
       .buy-now-btn {
         align-self: flex-start;
         padding: 0.5rem 1.25rem;
-        background: #2eb5af;
+        background: var.$color-primary;
         color: #fff;
         border: 0;
         border-radius: 4px;
@@ -162,7 +162,7 @@
         margin-top: 1rem;
 
         &:hover {
-          background: darken(#008080, 10%);
+          background: darken(var.$color-primary, 10%);
         }
 
         @media (max-width: 768px) {
