@@ -29,7 +29,7 @@ const uploadToCloudinary = async (buffer, options = {}) => {
     
     try {
         const {
-            folder = 'vinsara/uploads',
+            folder = 'Vinsara/uploads',
             filename = generateUniqueFilename('image')
         } = options;
 
