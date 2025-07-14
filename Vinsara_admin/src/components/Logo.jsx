@@ -4,8 +4,8 @@ function Logo() {
   return (
     <div>
       <img
-        src="/images/logo.png"
-        className="w-20 h-10 md:w-[11rem] md:h-[2rem] object-cover"
+        src="/logo/Logo.svg"
+        className="w-3 h-3 md:w-[3rem] md:h-[3rem] object-cover"
         alt="Logo image"
       />
     </div>
