@@ -47,9 +47,9 @@ function DashBoard() {
       <div className="flex flex-col lg:flex-row items-center justify-evenly  py-3 bg-white md:p-4">
         <div>
           <img
-            src="/images/logo.png"
+            src="/logo/Logo.svg"
             alt="logo image"
-            className="w-[20rem] md:w-[22rem] md:p-4"
+            className="w-[11rem] md:w-[9rem] md:p-4"
           />
         </div>
         <div>
