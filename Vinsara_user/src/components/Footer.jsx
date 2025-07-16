@@ -2,6 +2,7 @@ import React from "react";
 import { FaTwitter, FaFacebookF, FaInstagram, FaYoutube } from "react-icons/fa";
 import Logo from "../assets/LogoFoot.svg";
 import { useCategories } from "../hooks/queries/categories";
+import VinsaraLogo from "../assets/vinsaralogo.svg";
 import { useState } from "react";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
@@ -19,7 +20,6 @@ function Footer() {
   const [feedbackForm, setFeedbackForm] = useState({
     name: "",
     phone: "",
-    email: "",
     message: ""
   });
 
@@ -32,6 +32,17 @@ function Footer() {
     // Allows formats: +91XXXXXXXXXX or XXXXXXXXXX (10 digits)
     const phoneRegex = /^(?:\+91)?[6-9]\d{9}$/;
     return phoneRegex.test(phone.replace(/\s+/g, ''));
+  };
+
+  const validateContact = (contact) => {
+    // Check if it's an email or phone number
+    if (validateEmail(contact)) {
+      return { isValid: true, type: 'email' };
+    }
+    if (validatePhone(contact)) {
+      return { isValid: true, type: 'phone' };
+    }
+    return { isValid: false, type: 'invalid' };
   };
 
   const validateMessage = (message) => {
@@ -52,7 +63,6 @@ function Footer() {
     const trimmedForm = {
       name: feedbackForm.name.trim(),
       phone: feedbackForm.phone.trim(),
-      email: feedbackForm.email.trim(),
       message: feedbackForm.message.trim()
     };
 
@@ -62,15 +72,10 @@ function Footer() {
       return;
     }
 
-    // Validate email
-    if (!validateEmail(trimmedForm.email)) {
-      toast.error("Please enter a valid email address");
-      return;
-    }
-
-    // Validate phone
-    if (!validatePhone(trimmedForm.phone)) {
-      toast.error("Please enter a valid Indian phone number");
+    // Validate contact (email or phone)
+    const contactValidation = validateContact(trimmedForm.phone);
+    if (!contactValidation.isValid) {
+      toast.error("Please enter a valid email address or phone number");
       return;
     }
 
@@ -81,18 +86,27 @@ function Footer() {
       return;
     }
 
-    // Submit the trimmed and validated form
-    submitFeedback({
-      ...trimmedForm,
-      message: messageValidation.message // Use the trimmed message
-    }, {
+    // Prepare data for submission
+    const submitData = {
+      name: trimmedForm.name,
+      message: messageValidation.message
+    };
+
+    // Add email or phone based on validation
+    if (contactValidation.type === 'email') {
+      submitData.email = trimmedForm.phone;
+    } else {
+      submitData.phone = trimmedForm.phone;
+    }
+
+    // Submit the form
+    submitFeedback(submitData, {
       onSuccess: () => {
         toast.success("Feedback submitted successfully");
         // Reset form
         setFeedbackForm({
           name: "",
           phone: "",
-          email: "",
           message: ""
         });
       },
@@ -122,41 +136,30 @@ function Footer() {
           <div className="newsletter-content-text">
             <h2>We Value Your Feedback</h2>
             <h3>Help Us Serve You Better!</h3>
-            <p>
-              Your feedback helps us improve our services and enhance your shopping experience. <br />
-              Share your thoughts with us!
-            </p>
           </div>
           <form className="newsletter-content-form" onSubmit={handleFeedbackSubmit}>
-            <input 
-              type="text" 
-              placeholder="Full name" 
-              name="name"
-              value={feedbackForm.name}
-              onChange={handleInputChange}
-              required
-              maxLength={50}
-            />
-            <input 
-              type="tel" 
-              placeholder="Phone number" 
-              name="phone"
-              value={feedbackForm.phone}
-              onChange={handleInputChange}
-              required
-              maxLength={13}
-            />
-            <input 
-              type="email" 
-              placeholder="Email address" 
-              name="email"
-              value={feedbackForm.email}
-              onChange={handleInputChange}
-              required
-              maxLength={100}
-            />
+            <div className="form-row">
+              <input 
+                type="text" 
+                placeholder="Full Name" 
+                name="name"
+                value={feedbackForm.name}
+                onChange={handleInputChange}
+                required
+                maxLength={50}
+              />
+              <input 
+                type="text" 
+                placeholder="Email or Phone number" 
+                name="phone"
+                value={feedbackForm.phone}
+                onChange={handleInputChange}
+                required
+                maxLength={13}
+              />
+            </div>
             <textarea 
-              placeholder="Your message" 
+              placeholder="Tell us about your experience" 
               name="message"
               value={feedbackForm.message}
               onChange={handleInputChange}
@@ -168,116 +171,48 @@ function Footer() {
         </div>
       </div>
 
-      <div className="footer-divider"></div>
+      {/* <div className="footer-divider"></div> */}
 
       {/* Main Footer */}
       <div className="footer-main">
-        {/* Brand Section */}
-        <div className="footer-brand">
-          <img src={"/logo/Logo.svg"} alt="Vinsara Logo" />
+          {/* Logo Section */}
+            <div className="footer-logo">
+              <img src={VinsaraLogo} alt="Vinsara Logo" />
+            </div>
+
+        {/* Navigation Links */}
+        <div className="footer-navigation">
+          <a href="#" className="nav-link">All</a>
+          <a href="#" className="nav-link">Women</a>
+          <a href="#" className="nav-link">Kids</a>
+          <a href="#" className="nav-link">Jewellery</a>
+          <a href="#" className="nav-link">Accessories</a>
+          <a href="#" className="nav-link">Premium</a>
         </div>
 
-        <div className="footer-links-group">
-          {/* Categories */}
-          <div className="footer-section">
-            <h4>Categories</h4>
-            <ul>
-              {categories?.map((category) => (
-                <li
-                  key={category._id}
-                  onClick={() =>
-                    navigate(`/products`, {
-                      state: { selectedCategory: {
-                        id: category._id,
-                        name: category.name,
-                      } },
-                    })
-                  }
-                  style={{ cursor: "pointer" }}
-                >
-                  {category.name}
-                </li>
-              ))}
-            </ul>
-          </div>
+        {/* Divider */}
+        <div className="footer-divider-main"></div>
 
-          {/* Company */}
-          <div className="footer-section2">
-            <h4>Company</h4>
-            <ul>
-              <li>
-                <a href="#" className="footer-link">
-                  About us
-                </a>
-              </li>
-              <li>
-                <a href="#" className="footer-link">
-                  Blog
-                </a>
-              </li>
-              <li>
-                <a href="#" className="footer-link">
-                  Gift vouchers
-                </a>
-              </li>
-              <li>
-                <a href="#" className="footer-link">
-                  Our policy
-                </a>
-              </li>
-            </ul>
-          </div>
-
-          {/* Contact */}
-          <div className="footer-section3">
-            <h4>Contact</h4>
-            <ul>
-              <li>
-                <span>VINSARA VENTURES LLP</span>
-              </li>
-              <li className="address">
-              38/1553/A, KANNANCHERI
-              </li>
-              <li className="address">
-              (PO) KALLAI, KOZHIKODE 
-              </li>
-              <li className="address">
-              KERALA,  673003 
-              </li>
-              <li className="address"> 7012617749</li>
-            </ul>
-          </div>
+        {/* Address Section */}
+        <div className="footer-address">
+          <p>Vinsara Ventures Llp 38/1553/A, Kannancheri (Po) Kallai, Kozhikode Kerala, 673003</p>
+          <p>7012617749</p>
         </div>
       </div>
 
       {/* Footer Bottom */}
       <div className="footer-bottom">
-        <div className="social-links">
-          {/* <a href="#">
-            <FaTwitter />
-          </a> */}
-          {/* <a href="https://www.facebook.com/" target="_blank">
-            <FaFacebookF />
-          </a> */}
-          <a href="#" target="_blank">
+        <div className="footer-bottom-content">
+          <span className="copyright">
+            © 2025 <span className="brand-highlight">Vinsara</span>. All rights reserved
+          </span>
+          <div className="separator"></div>
+          <a href="#" className="social-link">
             <FaInstagram />
           </a>
-          {/* <a href="https://www.youtube.com/" target="_blank">
-            <FaYoutube />
-          </a> */}
-        </div>
-
-        <p>
-          © 2025 <span className="footer-brand-name">Vinsara</span> All rights
-          reserved
-        </p>
-
-        <div className="powered-by">
-          <span>
-            Powered by{" "}
-            <a href="https://www.instagram.com/marketlube/" target="_blank">
-              Marketlube
-            </a>
+          <div className="separator"></div>
+          <span className="powered-by">
+            Powered by <span className="brand-highlight">Marketlube</span>
           </span>
         </div>
       </div>
