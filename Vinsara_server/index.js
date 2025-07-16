@@ -33,7 +33,7 @@ app.use(
 );
 
 app.get("/", (req, res) => {
-  res.send("Server Started");
+  res.send("Server Started succesfully");
 });
 
 //routes
