@@ -4,8 +4,9 @@
 .carousel-container {
   height: calc(86vh - var.$header-height - 2.5rem);
   position: relative;
-  padding: 20px;
+  padding: 20px 20px 0px 20px;
   overflow: hidden;
+  margin-bottom: 5rem;
 
   // Tablet responsiveness
   @media (max-width: 1024px) and (min-width: 600px) {
@@ -210,6 +211,7 @@
   width: 80%;
   margin: 0 auto;
   border-radius: 4px;
+  margin-bottom: 6rem;
 
   @include responsive.respond(phone) {
     padding: 0;

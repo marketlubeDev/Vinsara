@@ -474,8 +474,9 @@ ul {
 .carousel-container {
   height: calc(86vh - 4rem - 2.5rem);
   position: relative;
-  padding: 20px;
+  padding: 20px 20px 0px 20px;
   overflow: hidden;
+  margin-bottom: 5rem;
 }
 @media (max-width: 1024px) and (min-width: 600px) {
   .carousel-container {
@@ -648,6 +649,7 @@ ul {
   width: 80%;
   margin: 0 auto;
   border-radius: 4px;
+  margin-bottom: 6rem;
 }
 @media only screen and (min-width: 576px) and (max-width: 767.98px) {
   .carousel-container-banner {
@@ -1268,6 +1270,7 @@ ul {
   padding: 0 10%;
   margin: 0 auto;
   max-height: 30rem;
+  margin-bottom: 6rem;
 }
 @media screen and (max-width: 1024px) and (min-width: 768px) {
   .offer-container {
@@ -1509,7 +1512,7 @@ ul {
 .trending-container {
   padding: 0 10%;
   background: #fff;
-  margin: 0.5rem 0 0 0;
+  margin: 0 0 4rem 0;
 }
 @media screen and (max-width: 1024px) and (min-width: 768px) {
   .trending-container {
@@ -1584,10 +1587,11 @@ ul {
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  padding: 0.5rem 0;
+  padding: 0.5rem 0 0 0;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
+  margin-bottom: 1rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }
@@ -1793,7 +1797,7 @@ ul {
 .bestseller_container {
   padding: 0 10%;
   background: #fff;
-  margin-block: 0.5rem;
+  margin-bottom: 6rem;
 }
 @media screen and (max-width: 768px) {
   .bestseller_container {
@@ -1829,7 +1833,7 @@ ul {
 }
 .bestseller_cards-wrapper {
   position: relative;
-  padding-bottom: 2.5rem;
+  margin-bottom: 4rem;
 }
 .bestseller_cards-wrapper .custom-dots {
   display: none;
@@ -2814,7 +2818,7 @@ ul {
   background: #fff;
 }
 .product-page .product-section {
-  margin: 1rem 0;
+  margin: 0 0 4rem 0;
   padding: 0 10%;
 }
 @media (max-width: 768px) {
@@ -5799,6 +5803,7 @@ body.modal-open {
   padding: 0 10%;
   margin: 0 auto;
   text-align: center;
+  margin-bottom: 6rem;
 }
 .shop-by h2 {
   font-size: 28px;

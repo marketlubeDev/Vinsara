@@ -5,7 +5,8 @@
   &_container {
     padding: var.$default-padding;
     background: #fff;
-    margin-block: 0.5rem;
+    // margin-block: 0.5rem;
+    margin-bottom: 6rem;
     @media screen and (max-width: 768px) {
       padding: 0 1rem;
     }
@@ -47,7 +48,8 @@
 
   &_cards-wrapper {
     position: relative;
-    padding-bottom: 2.5rem;
+    // padding-bottom: 2.5rem;
+    margin-bottom: 4rem;
 
     .custom-dots {
       display: none;
