@@ -7,7 +7,7 @@ const { getOrderStats } = require("../helpers/aggregation/aggregations");
 const Variant = require("../model/variantsModel");
 const Cart = require("../model/cartModel");
 const { NormalUser } = require("../model/userModel");
-const razorpayInstance = require("../config/razorPay");
+const razorpayInstance = require("../config/razorpay");
 const crypto = require("crypto");
 
 const utilitesModel = require("../model/utilitesModel");
