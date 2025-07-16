@@ -122,7 +122,7 @@ const editCategory = catchAsync(async (req, res, next) => {
 
   await category.save();
 
- 
+
   const updatedCategory = await Category.findById(categoryId)
 
   res.status(200).json({
@@ -156,11 +156,11 @@ const searchCategory = catchAsync(async (req, res, next) => {
   const searchQuery = isObjectId
     ? { _id: keyword }
     : {
-        $or: [
-          { name: { $regex: keyword, $options: "i" } },
-          { description: { $regex: keyword, $options: "i" } },
-        ],
-      };
+      $or: [
+        { name: { $regex: keyword, $options: "i" } },
+        { description: { $regex: keyword, $options: "i" } },
+      ],
+    };
 
   const categories = await Category.find(searchQuery)
     .populate("parent")
@@ -247,7 +247,7 @@ const deleteCategory = catchAsync(async (req, res, next) => {
   }
 
   // Check if category has products
-  const productCount = await Product.countDocuments({ category: categoryId });
+  const productCount = await Product.countDocuments({ category: categoryId, isDelete: false });
   if (productCount > 0) {
     return next(new AppError("Category has products, cannot delete", 400));
   }

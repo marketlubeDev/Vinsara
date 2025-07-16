@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from "react";
 import { FiHeart, FiShoppingCart, FiUser, FiSearch, FiX } from "react-icons/fi";
 import { IoIosArrowDown, IoIosArrowForward } from "react-icons/io";
+import { PiShoppingCart } from "react-icons/pi";
 import {
   MdOutlineLocationOn,
   MdOutlineLocalShipping,
@@ -52,6 +53,21 @@ export default function Header() {
     }
   };
 
+
+  const handleCartNavigation = () => {
+    const token = localStorage.getItem("user-auth-token");
+    console.log("Cart navigation - token check:", { token, isLoggedIn });
+
+    if (!token || token === "undefined" || token === null || token === "") {
+      console.log("No token found, storing redirect path for cart");
+      // // Store redirect path before navigation using utility function
+      // storeRedirectPath("/cart");
+      navigate("/login");
+    } else {
+      navigate("/cart");
+    }
+  };
+
   const handleMenuItemClick = (item) => {
     setIsUserMenuOpen(false);
     if (item === "logout") {
@@ -73,24 +89,7 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-  // const categories = data?.envelop?.data || [];
 
-  // const handleCategoryClick = (category) => {
-  //   if (selectedCategory?._id === category._id) {
-  //     setSelectedCategory(null);
-  //   } else {
-  //     setSelectedCategory(category);
-  //   }
-
-  //   navigate("/products", {
-  //     state: {
-  //       selectedCategory: {
-  //         id: category._id,
-  //         name: category.name,
-  //       },
-  //     },
-  //   });
-  // };
 
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
@@ -103,9 +102,6 @@ export default function Header() {
     setSearchQuery(e.target.value);
   };
 
-  const toggleBrandsList = () => {
-    setIsBrandsListOpen(!isBrandsListOpen);
-  };
 
   return (
     <>
@@ -136,7 +132,7 @@ export default function Header() {
                     {category.name}
                   </option>
                 ))}
-              </select>
+              </select> 
             </div> */}
             <input
               type="text"
@@ -176,16 +172,14 @@ export default function Header() {
           <div className="header-actions-item mobile-search-icon">
             <FiSearch className="icon" onClick={toggleSearch} />
           </div>
-          {/* <div className="header-actions-item">
-            <FiHeart className="icon" />
-          </div> */}
+
           <div
             className="header-actions-item user-menu-container"
             ref={userMenuRef}
           >
-            {/* <FiUser className="icon" onClick={toggleUserMenu} /> */}
+            <FiUser className="icon" onClick={toggleUserMenu} />
 
-            {/* {isUserMenuOpen && isLoggedIn && (
+            {isUserMenuOpen && isLoggedIn && (
               <div className={`user-menu ${isUserMenuOpen ? "active" : ""}`}>
                 <Link
                   to="/profile?tab=personal-info"
@@ -237,9 +231,15 @@ export default function Header() {
                   </Link>
                 </div>
               </div>
-            )} */}
+            )}
+            <div className="icon" onClick={handleCartNavigation}>
+              <PiShoppingCart />
+            </div>
           </div>
+
         </div>
+
+
 
         {/* Mobile Search Overlay */}
         <div
@@ -276,15 +276,6 @@ export default function Header() {
             </div>
           )}
         </div>
-
-        {/* <div className="header-item" onClick={toggleBrandsList}>
-          Brands
-        </div> */}
-
-        {/* <BrandsList
-          isOpen={isBrandsListOpen || selectedCategory !== null}
-          category={selectedCategory}
-        /> */}  
       </header>
       <NavBar />
     </>
