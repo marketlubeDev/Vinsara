@@ -2764,6 +2764,56 @@ ul {
     width: 95%;
   }
 }
+@media (max-width: 480px) {
+  .footer {
+    padding: 2rem 1rem;
+  }
+  .footer .newsletter {
+    padding: 0 0.5rem;
+  }
+  .footer .newsletter-content {
+    gap: 1.5rem;
+  }
+  .footer .newsletter-content h2,
+  .footer .newsletter-content h3 {
+    font-size: 1.25rem;
+    text-align: center;
+  }
+  .footer .footer-main {
+    padding: 2rem 0.5rem 0rem 0.5rem;
+    gap: 1rem;
+  }
+  .footer .footer-main .footer-logo img {
+    width: 8rem;
+  }
+  .footer .footer-main .footer-navigation {
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+  .footer .footer-main .footer-divider-main {
+    width: 90%;
+  }
+  .footer .footer-main .footer-address {
+    font-size: 0.75rem;
+    padding: 0 0.5rem;
+  }
+  .footer .footer-bottom {
+    padding: 1rem 0.5rem;
+    width: 100%;
+  }
+  .footer .footer-bottom .footer-bottom-content {
+    flex-direction: column;
+    gap: 0.75rem;
+    text-align: center;
+  }
+  .footer .footer-bottom .footer-bottom-content .copyright,
+  .footer .footer-bottom .footer-bottom-content .powered-by {
+    font-size: 0.8rem;
+  }
+  .footer .footer-bottom .footer-bottom-content .separator {
+    display: none;
+  }
+}
 
 .footer-link {
   color: #fff !important;
@@ -5826,7 +5876,16 @@ body.modal-open {
 @media screen and (max-width: 767px) {
   .shop-by .content {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+}
+@media screen and (max-width: 480px) {
+  .shop-by .content {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
     margin: 1rem 0;
   }
 }
@@ -5842,7 +5901,23 @@ body.modal-open {
   overflow: hidden;
   cursor: pointer;
   box-shadow: 0px 0px 10px 0px rgba(0, 0, 0, 0.1);
-  max-width: 20rem;
+  max-width: 18rem;
+  width: 15rem;
+  height: 15rem;
+}
+@media screen and (max-width: 767px) {
+  .shop-by .content .content-item {
+    width: 12rem;
+    height: 12rem;
+    max-width: 12rem;
+  }
+}
+@media screen and (max-width: 480px) {
+  .shop-by .content .content-item {
+    width: 100%;
+    height: 12rem;
+    max-width: 100%;
+  }
 }
 .shop-by .content .content-item .content-image {
   width: 100%;
@@ -5856,6 +5931,7 @@ body.modal-open {
   left: 0;
   width: 100%;
   height: 100%;
+  background: linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7));
   display: flex;
   align-items: center;
   justify-content: center;

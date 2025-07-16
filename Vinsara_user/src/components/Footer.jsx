@@ -182,12 +182,12 @@ function Footer() {
 
         {/* Navigation Links */}
         <div className="footer-navigation">
-          <a href="#" className="nav-link">All</a>
+          {/* <a href="#" className="nav-link">All</a>
           <a href="#" className="nav-link">Women</a>
           <a href="#" className="nav-link">Kids</a>
           <a href="#" className="nav-link">Jewellery</a>
           <a href="#" className="nav-link">Accessories</a>
-          <a href="#" className="nav-link">Premium</a>
+          <a href="#" className="nav-link">Premium</a> */}
         </div>
 
         {/* Divider */}

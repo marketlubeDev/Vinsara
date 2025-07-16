@@ -275,6 +275,69 @@
       width: 95%;
     }
   }
+
+  @media (max-width: 480px) {
+    padding: 2rem 1rem;
+
+    .newsletter {
+      padding: 0 0.5rem;
+
+      &-content {
+        gap: 1.5rem;
+
+        h2,
+        h3 {
+          font-size: 1.25rem;
+          text-align: center;
+        }
+      }
+    }
+
+    .footer-main {
+      padding: 2rem 0.5rem 0rem 0.5rem;
+      gap: 1rem;
+
+      .footer-logo {
+        img {
+          width: 8rem;
+        }
+      }
+
+      .footer-navigation {
+        flex-direction: column;
+        gap: 0.75rem;
+      }
+
+      .footer-divider-main {
+        width: 90%;
+      }
+
+      .footer-address {
+        font-size: 0.75rem;
+        padding: 0 0.5rem;
+      }
+    }
+
+    .footer-bottom {
+      padding: 1rem 0.5rem;
+      width: 100%;
+
+      .footer-bottom-content {
+        flex-direction: column;
+        gap: 0.75rem;
+        text-align: center;
+
+        .copyright,
+        .powered-by {
+          font-size: 0.8rem;
+        }
+
+        .separator {
+          display: none;
+        }
+      }
+    }
+  }
 }
 
 .footer-link {
