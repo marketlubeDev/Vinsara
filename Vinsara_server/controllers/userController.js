@@ -2,6 +2,10 @@ const { NormalUser } = require("../model/userModel");
 const createToken = require("../utilities/createToken");
 const AppError = require("../utilities/errorHandlings/appError");
 const catchAsync = require("../utilities/errorHandlings/catchAsync");
+const otpToEmail = require("../utilities/sendMail");
+
+const otpStore = new Map();
+
 
 const register = catchAsync(async (req, res, next) => {
   const { username, email, phonenumber, password } = req.body;
@@ -31,35 +35,57 @@ const register = catchAsync(async (req, res, next) => {
     .json({ message: "user created", user: userObj, token });
 });
 
-const login = catchAsync(async (req, res, next) => {
-  const { email, password } = req.body;
+// const login = catchAsync(async (req, res, next) => {
+//   const { email, password } = req.body;
 
-  if (!email || !password) {
-    return next(new AppError("Email and password are required", 400));
-  }
+//   if (!email || !password) {
+//     return next(new AppError("Email and password are required", 400));
+//   }
 
-  const user = await NormalUser.findOne({ email });
-  if (!user) {
-    return next(new AppError("Invalid email or password", 401));
-  }
+//   const user = await NormalUser.findOne({ email });
+//   if (!user) {
+//     return next(new AppError("Invalid email or password", 401));
+//   }
 
-  const isMatch = await user.comparePassword(password.toString());
-  if (!isMatch) {
-    return next(new AppError("Invalid email or password", 401));
-  }
+//   const isMatch = await user.comparePassword(password.toString());
+//   if (!isMatch) {
+//     return next(new AppError("Invalid email or password", 401));
+//   }
 
-  const token = createToken(user._id, "user");
+//   const token = createToken(user._id, "user");
 
-  const userObj = user.toObject();
-  delete userObj.password;
+//   const userObj = user.toObject();
+//   delete userObj.password;
+
+//   res.status(200).json({
+//     message: "Logged in successfully",
+//     user: userObj,
+//     token,
+//   });
+// });
+
+
+
+const sendOtp = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  const [response, status, otp] = await otpToEmail(email);
+  otpStore.set(email, {
+    otp,
+    expires: Date.now() + 10 * 60 * 1000,
+    userData: req.body,
+  });
+
 
   res.status(200).json({
-    message: "Logged in successfully",
-    user: userObj,
-    token,
+    status: "Success",
+    message: "OTP has been sent successfully to your email",
+    content: {
+      email,
+    },
   });
-});
 
+})
 const userLogOut = catchAsync(async (req, res, next) => {
   res.clearCookie("user-auth-token");
 
@@ -93,6 +119,68 @@ const listUsers = catchAsync(async (req, res, next) => {
       hasPrevPage: page > 1,
     },
   });
+});
+
+
+const verifyOtp = catchAsync(async (req, res, next) => {
+  const { email, otp } = req.body;
+
+  // Get stored OTP data
+  const storedOtpData = otpStore.get(email);
+  if (!storedOtpData) {
+    return next(new AppError("No OTP found. Please request a new OTP.", 400));
+  }
+
+  // Check if OTP is expired
+  if (Date.now() > storedOtpData.expires) {
+    otpStore.delete(email);
+    return next(new AppError("This OTP is expired. Try again..", 401));
+  }
+
+  // Verify OTP
+  if (storedOtpData.otp !== otp) {
+    return next(new AppError("Incorrect OTP. Check your inbox again...", 400));
+  }
+  const userExists = await NormalUser.findOne({ email });
+  if (!userExists) {
+    const newUser = new NormalUser(storedOtpData.userData);
+    if (!newUser) {
+      return next(new AppError("Failed to create user", 500));
+    }
+    const savedUser = await newUser.save();
+
+
+    const token = createToken(savedUser._id);
+
+    res.status(200).json({
+      status: "Success",
+      message: "User created successfully",
+      content: {
+        user: savedUser,
+      },
+      token,
+    });
+  } else {
+    const token = createToken(userExists._id);
+    res.status(200).json({
+      status: "Success",
+      content: {
+        user: userExists,
+      },
+      token,
+    });
+  }
+
+  // const savedUser = await newUser.save();
+  // Create cart for the user
+
+
+  // Save user
+
+  // Clear OTP after successful verification
+  // otpStore.delete(email);
+
+  // sendToken(newUser, 201, res);
 });
 
 const searchUser = catchAsync(async (req, res, next) => {
@@ -175,11 +263,13 @@ const deleteUserAddress = catchAsync(async (req, res, next) => {
 
 module.exports = {
   register,
-  login,
+  // login,
   userLogOut,
   listUsers,
   searchUser,
   checkUser,
   updateUser,
   deleteUserAddress,
+  sendOtp,
+  verifyOtp
 };

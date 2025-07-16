@@ -1,16 +1,24 @@
 import React, { useEffect, useRef, useState } from "react";
 import Card from "../../components/Card";
-import { FiChevronLeft, FiChevronRight, FiShare2 } from "react-icons/fi";
-import { FaWhatsapp } from "react-icons/fa";
-import { IoIosArrowUp, IoIosArrowDown } from "react-icons/io";
-
+import { useSelector } from "react-redux";
+import {
+  FiChevronLeft,
+  FiChevronRight,
+  FiShare2,
+  FiHeart,
+} from "react-icons/fi";
 import { useProductById, useProducts } from "../../hooks/queries/products";
 import { useParams, useNavigate } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "../../components/error/ErrorFallback";
+import { useAddToCart } from "../../hooks/queries/cart";
 import ButtonLoadingSpinner from "../../components/ButtonLoadingSpinners";
-import { usePlaceOrder } from "../../hooks/queries/order";
+
+import { reviewService } from "../../api/services/reviewService";
+import { toast } from "sonner";
+import { useCart } from "../../hooks/queries/cart";
+import RatingModal from "./RatingModal";
 
 const CalculateDiscount = (price, offerPrice) => {
   const discount = ((price - offerPrice) / price) * 100;
@@ -20,7 +28,11 @@ const CalculateDiscount = (price, offerPrice) => {
 function ProductDetailsContent() {
   const navigate = useNavigate();
   const sliderRef = useRef(null);
+  const isLoggedIn = useSelector((state) => state?.user?.isLoggedIn);
+
+  const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
+  const [reviews, setReviews] = useState([]);
   const { id } = useParams();
   //api calls
   const { data: product, isLoading, error, refetch } = useProductById(id);
@@ -30,35 +42,36 @@ function ProductDetailsContent() {
     error: errorProducts,
   } = useProducts();
 
+  console.log(response, "response>>>")
 
-  const { mutate: placeOrder, isPending: isPlacingOrder } = usePlaceOrder();
 
+
+  const { mutate: addToCart, isLoading: isAddingToCart } = useAddToCart();
+
+  // Local state to track which button is loading
+  const [loadingAction, setLoadingAction] = useState(null); // "buy" or "cart"
+  const [isRatingModalOpen, setIsRatingModalOpen] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
-  const [quantity, setQuantity] = useState(1);
-  const [outOfStock, setOutOfStock] = useState(false);
-  useEffect(() => {
-    setSelectedVariant(product?.variants?.[0]);
-    setSelectedImage(product?.variants?.[0]?.images?.[0]);
-    setQuantity(1);
+  const [previewImage, setPreviewImage] = useState(null);
 
+  useEffect(() => {
+    setSelectedVariant(null);
+    setSelectedImage(null);
+
+    if (product?.variants?.length > 0) {
+      setSelectedVariant(product.variants[0]);
+      setSelectedImage(product.variants[0].images[0]);
+    } else if (product?.images?.length > 0) {
+      setSelectedImage(product.images[0]);
+    }
+    setReviews(product?.ratings);
 
     window.scrollTo({
       top: 0,
       behavior: "smooth",
     });
   }, [product, id]);
-
-  useEffect(() => {
-    if (
-      (selectedVariant && selectedVariant?.stockStatus == "outofstock") ||
-      (selectedVariant && selectedVariant?.stock === 0) 
-    ) {
-      setOutOfStock(true);
-    } else {
-      setOutOfStock(false);
-    }
-  }, [selectedVariant, product]);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div>Error: {error.message}</div>;
@@ -73,46 +86,52 @@ function ProductDetailsContent() {
     }
   };
 
-  const handleConnectToWhatsapp = async () => {
+  const visibleReviews = showAllReviews ? reviews : reviews?.slice(0, 2);
+  // const visibleReviews = reviews;
+
+  const handleAddToCart = (type) => {
     try {
       const productToAdd = {
         productId: product._id,
         variantId: selectedVariant?._id || null,
-        quantity: quantity,
+        quantity: 1,
         from: location.pathname,
       };
 
-      placeOrder(productToAdd, {
-        onSuccess: (data) => {
-          setQuantity(1);
-          const orderDetails = data?.data?.order;
-          const message =
-            `*ORDER DETAILS*\n\n` +
-            `*Order ID:* ${orderDetails?.orderId}\n\n` +
-            `*Product Details*\n` +
-            `• Name: ${orderDetails?.productName}\n` +
-            `• SKU: ${orderDetails?.sku}\n` +
-            `• Brand: ${orderDetails?.brandName}\n` +
-            `${
-              orderDetails?.variantName
-                ? `• Variant: ${orderDetails?.variantName}\n`
-                : ""
-            }` +
-            `• Quantity: ${orderDetails?.quantity}\n` +
-            `• Price: ₹${orderDetails?.pricePerUnit}\n` +
-            `• Total: ₹${orderDetails?.totalAmount}\n\n` +
-            `*Store Details*\n` +
-            `• ${orderDetails?.storeName}\n` +
-            `• Contact: ${orderDetails?.storeNumber}\n\n` +
-            `*Product Image*\n` +
-            `${orderDetails?.productImage}\n\n`;
-
-          const whatsappUrl = `https://wa.me/+91${orderDetails?.storeNumber}?text=${encodeURIComponent(message)}`;
-          window.open(whatsappUrl, "_blank");
+      setLoadingAction(type);
+      addToCart(productToAdd, {
+        onSuccess: () => {
+          if (type === "buy") {
+            navigate("/cart");
+          }
         },
-        onError: (error) => {},
+        onSettled: () => {
+          setLoadingAction(null);
+        },
+        onError: (error) => {
+          console.log(error);
+        },
       });
-    } catch (error) {}
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleSubmitReview = async (reviewData) => {
+    const formData = new FormData();
+    formData.append("rating", reviewData.rating);
+    formData.append("review", reviewData.review);
+    formData.append("image", reviewData.media);
+    formData.append("productId", reviewData.productId);
+    try {
+      const response = await reviewService.createReview(formData);
+
+      setIsRatingModalOpen(false);
+      refetch();
+      toast.success("Review submitted successfully");
+    } catch (error) {
+      console.log(error);
+    }
   };
 
   const truncateDescription = (text) => {
@@ -122,12 +141,21 @@ function ProductDetailsContent() {
     return showFullDescription ? text : words?.slice(0, 100).join(" ") + "...";
   };
 
+  const handleImageClick = (imageUrl) => {
+    setPreviewImage(imageUrl);
+  };
+
+  const handleClosePreview = () => {
+    setPreviewImage(null);
+  };
+
   const handleShare = () => {
     const currentUrl = window.location.href;
     const message = `Check out this product: ${product?.name}\n${currentUrl}`;
     const whatsappUrl = `https://wa.me/?text=${encodeURIComponent(message)}`;
     window.open(whatsappUrl, "_blank");
   };
+
 
   return (
     <div className="product-details">
@@ -143,77 +171,96 @@ function ProductDetailsContent() {
             <img
               src={
                 selectedImage ||
-                (selectedVariant && selectedVariant.images[0]) 
+                (selectedVariant
+                  ? selectedVariant.images[0]
+                  : product?.images?.[0])
               }
               alt={product?.name}
             />
           </div>
           <div className="thumbnail-images">
-            { selectedVariant?.images.map((image, index) => (
-                  <img
-                    key={index}
-                    src={image}
-                    alt={`${product?.name} ${index + 1}`}
-                    onClick={() => setSelectedImage(image)}
-                    className={selectedImage === image ? "selected" : ""}
-                    style={{ cursor: "pointer" }}
-                  />
-                ))}
+            {!selectedVariant
+              ? product?.images?.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`${product?.name} ${index + 1}`}
+                  onClick={() => setSelectedImage(image)}
+                  className={selectedImage === image ? "selected" : ""}
+                  style={{ cursor: "pointer" }}
+                />
+              ))
+              : selectedVariant?.images.map((image, index) => (
+                <img
+                  key={index}
+                  src={image}
+                  alt={`${product?.name} ${index + 1}`}
+                  onClick={() => setSelectedImage(image)}
+                  className={selectedImage === image ? "selected" : ""}
+                  style={{ cursor: "pointer" }}
+                />
+              ))}
           </div>
         </div>
 
         <div className="product-info">
-          <div className="product-info-header">
-            <div className="brand">
-              <img
-                src={product?.brand?.image}
-                alt={product?.brand?.name}
-                className="brand-logo"
-              />
-              <span>{product?.brand?.name}</span>
-            </div>
+          {/* <div className="product-info-header">
+
             <div className="actions">
-              {/* <span className="product-id"># {product?._id}</span> */}
               <button className="share-btn" onClick={handleShare}>
                 <FiShare2 />
               </button>
             </div>
-          </div>
+          </div> */}
 
           <h1 className="product-title">
             {/* {selectedVariant
               ? selectedVariant?.attributes?.title
               : product?.name} */}
             {selectedVariant
-              && `${product?.name} (${selectedVariant?.attributes?.title})`
-            }
+              ? `${product?.name} (${selectedVariant?.attributes?.title})`
+              : product?.name}
           </h1>
 
-          {(selectedVariant
-            && selectedVariant?.stock < 5 && selectedVariant?.stock > 0
-           ) && (
-            <span className="product-stock-left">
-              ( only {selectedVariant ? selectedVariant?.stock : product?.stock}{" "}
-              left)
-            </span>
-          )}
+          <div className="rating-summary">
+            <div className="stars">
+              {"★".repeat(Math.floor(product?.averageRating))}
+              {"☆".repeat(5 - Math.floor(product?.averageRating))}
+            </div>
+            <span className="rating">{product?.averageRating}</span>
+            <span className="reviews">({product?.totalRatings || 0} reviews)</span>
+          </div>
+
           <div className="section description">
+            <h3>Description</h3>
             <p>
               {truncateDescription(
                 selectedVariant
-                  && selectedVariant?.attributes?.description
+                  ? selectedVariant?.attributes?.description
+                  : product?.description
               )}
               {(selectedVariant?.attributes?.description?.split(" ").length >
-                100 ) && (
-                <button
-                  className="read-more"
-                  onClick={() => setShowFullDescription(!showFullDescription)}
-                >
-                  {showFullDescription ? "Show less" : "Read more"}
-                </button>
-              )}
+                100 ||
+                product?.description?.split(" ").length > 100) && (
+                  <button
+                    className="read-more"
+                    onClick={() => setShowFullDescription(!showFullDescription)}
+                  >
+                    {showFullDescription ? "Show less" : "Read more"}
+                  </button>
+                )}
             </p>
           </div>
+
+          {/* <div className="section material">
+            <h3>Material</h3>
+            <div className="color-options">
+              <button className="color-btn black"></button>
+              <button className="color-btn brown"></button>
+              <button className="color-btn beige"></button>
+            </div>
+          </div> */}
+
           {product?.variants.length > 0 && (
             <div className="section variants">
               <h3>Variants</h3>
@@ -221,9 +268,8 @@ function ProductDetailsContent() {
                 {product?.variants.map((variant) => (
                   <button
                     key={variant._id}
-                    className={`type-btn ${
-                      selectedVariant?._id === variant._id ? "active" : ""
-                    }`}
+                    className={`type-btn ${selectedVariant?._id === variant._id ? "active" : ""
+                      }`}
                     onClick={() => {
                       setSelectedVariant(variant);
                       setSelectedImage(variant.images[0]);
@@ -250,91 +296,236 @@ function ProductDetailsContent() {
               <span className="current">
                 ₹
                 {selectedVariant
-                  && selectedVariant?.offerPrice}
+                  ? selectedVariant?.offerPrice
+                  : product?.offerPrice}
               </span>
               <span className="original">
-                ₹{selectedVariant && selectedVariant?.price}
+                ₹{selectedVariant ? selectedVariant?.price : product?.price}
               </span>
               <span className="discount">
                 {CalculateDiscount(
-                  selectedVariant && selectedVariant?.price,
-                  selectedVariant && selectedVariant?.offerPrice
+                  selectedVariant ? selectedVariant?.price : product?.price,
+                  selectedVariant
+                    ? selectedVariant?.offerPrice
+                    : product?.offerPrice
                 )}
                 % off
               </span>
             </div>
 
+            {/* Stock Status */}
+            <div className="stock-status">
+              {(selectedVariant ? selectedVariant?.stock : product?.stock) <= 0 && (
+                <span className="out-of-stock">⚠️ Out of Stock</span>
+              )}
+            </div>
+
             <div className="buy-buttons">
-              {
+              <button
+                className="buy-now"
+                onClick={() => handleAddToCart("buy")}
+                disabled={
+                  loadingAction !== null ||
+                  (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+                }
+              >
+                {loadingAction === "buy" ? <ButtonLoadingSpinner /> : "Buy Now"}
+              </button>
+              <button
+                className="add-cart"
+                onClick={() => handleAddToCart("cart")}
+                disabled={
+                  loadingAction !== null ||
+                  (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+                }
+              >
+                {loadingAction === "cart" ? <ButtonLoadingSpinner /> : "Add To Cart"}
+              </button>
+            </div>
+          </div>
+
+          {/* <div className="section specifications">
+            <h3>Product Specification</h3>
+            <ul>
+              <li>Uses only 10W power</li>
+              <li>Brightness of 800 lumens</li>
+              <li>Adjustable color temperature (3000K-6500K)</li>
+              <li>Long lifespan of up to 50,000 hours</li>
+              <li>Fits E27 base sockets</li>
+            </ul>
+          </div> */}
+
+          <div className="section reviews">
+            <div className="reviews-header">
+              <h3>Ratings & Reviews</h3>
+              {isLoggedIn && (
                 <button
-                  className="buy-now"
-                  onClick={() => handleConnectToWhatsapp()}
-                  disabled={isPlacingOrder || outOfStock}
-                  style={{ opacity: outOfStock ? 0.5 : 1 }}
+                  className="rate-btn"
+                  onClick={() => setIsRatingModalOpen(true)}
                 >
-                  {isPlacingOrder ? (
-                    <ButtonLoadingSpinner />
-                  ) : (
-                    // if outof stock then disable the button and fade the button style
-                    <div className="buy-now-button">
-                      <FaWhatsapp
-                        style={{ color: "white", fontSize: "1.5rem" }}
-                      />
-                      Buy Now
-                    </div>
-                  )}
+                  Rate Product
                 </button>
-              }
-              {!outOfStock && (
-                <div className="quantity-container">
-                  <span>Qty:</span>
-                  <input
-                    type="text"
-                    className="quantity-input"
-                    value={quantity.toString()}
-                    onChange={(e) => {
-                      const value = e.target.value;
-                      if (value === "") {
-                        setQuantity("");
-                      } else {
-                        const parsed = parseInt(value);
-                        if (!isNaN(parsed) && parsed >= 0) {
-                          setQuantity(parsed);
-                        }
-                      }
-                    }}
-                    onBlur={() => {
-                      if (quantity === "" || quantity < 1) {
-                        setQuantity(1);
-                      }
-                    }}
-                  />
-                  <div className="quantity-buttons">
-                    <IoIosArrowUp
-                      size={30}
-                      onClick={() => setQuantity((prev) => prev + 1)}
-                    />
-                    <IoIosArrowDown
-                      size={30}
-                      onClick={() =>
-                        quantity > 1 && setQuantity((prev) => prev - 1)
-                      }
-                    />
+              )}
+            </div>
+
+            <div className="rating-container">
+              {product?.totalRatings > 0 && (
+                <div className="average-rating">
+                  <div className="rating-value">
+                    <span className="number">{product?.averageRating}</span>
+                    <div className="stars">
+                      {"★".repeat(Math.floor(product?.averageRating))}
+                    </div>
+                  </div>
+                  <span className="total-reviews">
+                    Based on {product?.totalRatings} reviews
+                  </span>
+                </div>
+              )}
+
+              {product?.totalRatings > 0 && (
+                <div className="rating-stats">
+                  <div className="rating-bar">
+                    <span>5★</span>
+                    <div className="bar">
+                      <div
+                        className="fill"
+                        style={{
+                          width: `${(product?.ratingDistribution[5] /
+                            product?.totalRatings) *
+                            100 || 0
+                            }%`,
+                        }}
+                      ></div>
+                    </div>
+                    <span>({product?.ratingDistribution[5]})</span>
+                  </div>
+                  <div className="rating-bar">
+                    <span>4★</span>
+                    <div className="bar">
+                      <div
+                        className="fill"
+                        style={{
+                          width: `${(product?.ratingDistribution[4] /
+                            product?.totalRatings) *
+                            100
+                            }%`,
+                        }}
+                      ></div>
+                    </div>
+                    <span>({product?.ratingDistribution[4]})</span>
+                  </div>
+                  <div className="rating-bar">
+                    <span>3★</span>
+                    <div className="bar">
+                      <div
+                        className="fill"
+                        style={{
+                          width: `${(product?.ratingDistribution[3] /
+                            product?.totalRatings) *
+                            100
+                            }%`,
+                        }}
+                      ></div>
+                    </div>
+                    <span>({product?.ratingDistribution[3]})</span>
+                  </div>
+                  <div className="rating-bar">
+                    <span>2★</span>
+                    <div className="bar">
+                      <div
+                        className="fill"
+                        style={{
+                          width: `${(product?.ratingDistribution[2] /
+                            product?.totalRatings) *
+                            100
+                            }%`,
+                        }}
+                      ></div>
+                    </div>
+                    <span>({product?.ratingDistribution[2]})</span>
+                  </div>
+                  <div className="rating-bar">
+                    <span>1★</span>
+                    <div className="bar">
+                      <div
+                        className="fill"
+                        style={{
+                          width: `${(product?.ratingDistribution[1] /
+                            product?.totalRatings) *
+                            100
+                            }%`,
+                        }}
+                      ></div>
+                    </div>
+                    <span>({product?.ratingDistribution[1]})</span>
                   </div>
                 </div>
               )}
-              {outOfStock && (
-                <span className="product-out-of-stock">
-                Sold Out  
-                </span>
-              )}
             </div>
+
+            {product?.totalRatings > 0 && (
+              <div className="reviews-list">
+                {visibleReviews?.map((review) => (
+                  <div key={review?._id} className="review-item">
+                    <div className="review-header">
+                      <div className="user-info">
+                        <img
+                          src={
+                            review?.userId?.image
+                              ? review?.userId?.image
+                              : "/images/user/profilepicture.jpg"
+                          }
+                          alt={review.userId?.username}
+                          className="user-avatar"
+                        />
+                        <div className="user-details">
+                          <span className="username">
+                            {review.userId?.username}
+                          </span>
+                          <span className="date">
+                            {new Date(review.createdAt).toLocaleDateString()}
+                          </span>
+                        </div>
+                      </div>
+                      <div className="review-rating">
+                        {"★".repeat(review?.rating)}
+                        {"☆".repeat(5 - review?.rating)}
+                      </div>
+                    </div>
+                    <div className="review-image">
+                      {review?.image && (
+                        <img
+                          src={review?.image}
+                          alt={review?.review}
+                          style={{
+                            width: "20%",
+                            height: "20%",
+                            objectFit: "cover",
+                          }}
+                          onClick={() => handleImageClick(review.image)}
+                        />
+                      )}
+                    </div>
+                    <p className="review-comment">{review?.review}</p>
+                  </div>
+                ))}
+                {reviews?.length > 2 && (
+                  <button
+                    className="show-more"
+                    onClick={() => setShowAllReviews(!showAllReviews)}
+                  >
+                    {showAllReviews ? "Show Less" : "Show More"}
+                  </button>
+                )}
+              </div>
+            )}
           </div>
         </div>
       </div>
 
       {/* Top Picks Section */}
-      <div className="top-picks-section">
+      <div className="top-picks-section" data-aos="fade-up">
         <div className="section-header">
           <h2>
             Top Picks <span>For You</span>
@@ -361,61 +552,58 @@ function ProductDetailsContent() {
       </div>
 
       <div className="mobile-fixed-buttons">
-        <div
-          className="buy-buttons"
-          style={{ display: "flex", alignItems: "center", gap: "1rem" }}
-        >
-          {
-            <div className="quantity-container" style={{ flex: 1 }}>
-              <span>Qty:</span>
-              <input
-                type="text"
-                className="quantity-input"
-                value={quantity.toString()}
-                onChange={(e) => {
-                  const value = e.target.value;
-                  if (value === "") {
-                    setQuantity("");
-                  } else {
-                    const parsed = parseInt(value);
-                    if (!isNaN(parsed) && parsed >= 0) {
-                      setQuantity(parsed);
-                    }
-                  }
-                }}
-                onBlur={() => {
-                  if (quantity === "" || quantity < 1) {
-                    setQuantity(1);
-                  }
-                }}
-              />
-              <div className="quantity-buttons">
-                <IoIosArrowUp
-                  size={30}
-                  onClick={() => setQuantity((prev) => prev + 1)}
-                />
-                <IoIosArrowDown
-                  size={30}
-                  onClick={() =>
-                    quantity > 1 && setQuantity((prev) => prev - 1)
-                  }
-                />
-              </div>
-            </div>
-          }
-          <button className="buy-now" onClick={() => handleConnectToWhatsapp()}>
-            <div className="buy-now-button">
-              <FaWhatsapp style={{ color: "white", fontSize: "1.5rem" }} />
-              Buy Now
-            </div>
+        <div className="buy-buttons">
+          <button
+            className="add-cart"
+            onClick={() => handleAddToCart("cart")}
+            disabled={
+              loadingAction !== null ||
+              (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+            }
+          >
+            {loadingAction === "cart" ? <ButtonLoadingSpinner /> : "Add To Cart"}
+          </button>
+          <button
+            className="buy-now"
+            onClick={() => handleAddToCart("buy")}
+            disabled={
+              loadingAction !== null ||
+              (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+            }
+          >
+            {loadingAction === "buy" ? <ButtonLoadingSpinner /> : "Buy Now"}
           </button>
         </div>
       </div>
+
+      <RatingModal
+        isOpen={isRatingModalOpen}
+        onClose={() => setIsRatingModalOpen(false)}
+        onSubmit={handleSubmitReview}
+        productId={product?._id}
+      />
+
+      {previewImage && (
+        <div className="image-preview-overlay" onClick={handleClosePreview}>
+          <div className="image-preview-container">
+            <img
+              src={previewImage}
+              alt="Preview"
+              onClick={(e) => e.stopPropagation()}
+            />
+            <button className="close-preview" onClick={handleClosePreview}>
+              ×
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
 
 function ProductDetails() {
+  const { data: cartData, isLoading: isCartLoading } = useCart();
+
   return (
     <ErrorBoundary
       FallbackComponent={ErrorFallback}

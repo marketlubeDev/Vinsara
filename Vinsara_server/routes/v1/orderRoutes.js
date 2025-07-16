@@ -6,34 +6,35 @@ const {
   getUserOrders,
   cancelOrder,
   orderStats,
-  updateOrder,
-  deleteEnquiry
+  payment,
+  verifyPayment,
 } = require("../../controllers/orderController");
 const autheticateToken = require("../../middlewares/authMiddleware");
 
 const orderRouter = require("express").Router();
-
 orderRouter.get("/get-user-orders", autheticateToken(["user"]), getUserOrders);
-orderRouter.post("/placeorder", placeOrder);
+orderRouter.post("/paymentIntent", autheticateToken(["user"]), payment);
+orderRouter.post("/paymentVerify", autheticateToken(["user"]), verifyPayment);
+orderRouter.post("/placeorder", autheticateToken(["user"]), placeOrder);
 orderRouter.patch(
   "/change-status/:orderId",
-  autheticateToken(["admin", "store", "user"]),
+  autheticateToken(["admin", "seller", "user"]),
   updateOrderStatus
 );
 orderRouter.get(
   "/get-orders",
-  autheticateToken(["admin", "store"]),
+  autheticateToken(["admin", "seller"]),
   filterOrders
 );
 
 orderRouter.get(
   "/get-order-stats",
-  autheticateToken(["admin", "store"]),
+  autheticateToken(["admin", "seller"]),
   orderStats
 );
 orderRouter.get(
   "/get-order/:orderId",
-  autheticateToken(["admin", "store"]),
+  autheticateToken(["admin", "seller"]),
   getOrderById
 );
 orderRouter.post(
@@ -42,6 +43,4 @@ orderRouter.post(
   cancelOrder
 );
 
-orderRouter.patch("/update-order/:orderId", autheticateToken(["admin","store"]), updateOrder);
-orderRouter.delete("/delete-enquiry/:enquiryId", autheticateToken(["admin","store"]), deleteEnquiry);
 module.exports = orderRouter;

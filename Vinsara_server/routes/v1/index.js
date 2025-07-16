@@ -14,6 +14,9 @@ const salesRouter = require("./salesRoutes");
 const inventoryRouter = require("./inventoryRoutes");
 const subCategoryRouter = require("./subcategoryRoutes");
 const feedbackRouter = require("./feedbackRoute");
+const cartRouter = require("./cartRoutes");
+const couponRouter = require("./couponRoute");
+const reviewRouter = require("./reviewRoutes");
 
 v1Router.use("/user", userRouter);
 v1Router.use("/product", productRouter);
@@ -30,5 +33,10 @@ v1Router.use("/sales", salesRouter);
 v1Router.use("/inventory", inventoryRouter);
 v1Router.use("/subcategory", subCategoryRouter);
 v1Router.use("/feedback", feedbackRouter);
+v1Router.use("/cart", cartRouter)
+v1Router.use("/coupon", couponRouter)
+v1Router.use("/review", reviewRouter)
+
+
 
 module.exports = v1Router;

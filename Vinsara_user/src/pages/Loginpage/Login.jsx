@@ -1,15 +1,21 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLogin } from "../../hooks/queries/auth";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
-  const [showPassword, setshowPassword] = useState(false);
-  const { mutate: loginMutation, isLoading } = useLogin();
+
+  const { mutate: loginMutation, isPending: isLoading } = useLogin();
+
+  useEffect(() => {
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth",
+    });
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -22,7 +28,6 @@ const Login = () => {
   const handleSubmit = (e) => {
     e.preventDefault();
     loginMutation(formData);
-    // Handle login logic here
   };
 
   return (
@@ -40,45 +45,39 @@ const Login = () => {
               name="email"
               value={formData.email}
               onChange={handleChange}
-              placeholder="Enter email address or phone number"
+              placeholder="Enter email address"
               required
             />
           </div>
 
-          <div className="form-group password-input">
+          {/* <div className="form-group">
             <input
-              type={showPassword ? "text" : "password"}
+              type="password"
               name="password"
               value={formData.password}
               onChange={handleChange}
               placeholder="Password"
               required
             />
-            <span
-              className="password-toggle"
-              onClick={() => setshowPassword(!showPassword)}
-            >
-              {showPassword ? <FaEyeSlash /> : <FaEye />}
-            </span>
-          </div>
+          </div> */}
 
           <button type="submit" className="login-button" disabled={isLoading}>
-            {isLoading ? "Logging in..." : "Continue"}
+            {isLoading ? "Sending OTP..." : "Continue"}
           </button>
 
-          <div className="terms-text">
+          {/* <div className="terms-text">
             By continuing, you agree to our{" "}
             <Link to="/terms">Terms of Service</Link> &{" "}
             <Link to="/privacy">Privacy Policy</Link>
-          </div>
+          </div> */}
         </form>
 
-        <div className="create-account">
+        {/* <div className="create-account">
           <div className="separator">Don't have an account?</div>
           <Link to="/signup" className="create-account-button">
             Create An Account
           </Link>
-        </div>
+        </div> */}
       </div>
     </div>
   );

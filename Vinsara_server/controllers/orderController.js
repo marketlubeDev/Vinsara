@@ -1,157 +1,405 @@
+const mongoose = require("mongoose");
 const AppError = require("../utilities/errorHandlings/appError");
 const orderModel = require("../model/orderModel");
 const productModel = require("../model/productModel");
-const variantModel = require("../model/variantsModel");
 const catchAsync = require("../utilities/errorHandlings/catchAsync");
 const { getOrderStats } = require("../helpers/aggregation/aggregations");
-const { default: mongoose } = require("mongoose");
+const Variant = require("../model/variantsModel");
+const Cart = require("../model/cartModel");
+const { NormalUser } = require("../model/userModel");
+const razorpayInstance = require("../config/razorPay");
+const crypto = require("crypto");
+
+const utilitesModel = require("../model/utilitesModel");
+// const placeOrder = catchAsync(async (req, res, next) => {
+//     const userId = req.user
+//     const { products, address, paymentMethod, transactionId } = req.body
+//     if (!products) {
+//         return next(new AppError("All fields are required", 400))
+//     }
+//     const productIds = products.map(p => new mongoose.Types.ObjectId(p.productId));
+//     const productDetails = await productModel.aggregate([
+//         { $match: { _id: { $in: productIds } } },
+//         {
+//             $project: {
+//                 name: 1,
+//                 offerPrice: 1,
+//                 stock: 1,
+//             }
+//         }
+//     ]);
+
+//     if (productDetails.length !== products.length) return next(new AppError("Invalid product selection", 400));
+
+//     let totalAmount = 0;
+//     const orderProducts = [];
+
+//     const bulkOperations = productDetails.map(product => {
+//         const item = products.find(p => p.productId === product._id.toString());
+
+//         if (!item) next(new AppError(`Product not found: ${product._id}`));
+//         if (product.quantity < item.quantity) next(new AppError(`Insufficient stock for ${product.name}`));
+
+//         totalAmount += product.offerPrice * item.quantity;
+//         orderProducts.push({ productId: product._id, quantity: item.quantity, price: product.offerPrice });
+
+//         // Reduce stock using bulk update
+//         return {
+//             updateOne: {
+//                 filter: { _id: product._id },
+//                 update: { $inc: { stock: -item.quantity } }
+//             }
+//         };
+//     });
+
+//     // Perform bulk stock update
+//     await productModel.bulkWrite(bulkOperations);
+
+//     const newOrder = new orderModel({
+//         userId,
+//         products: orderProducts,
+//         // address,
+//         totalAmount,
+//         // paymentDetails: {
+//         //     method: paymentMethod,
+//         //     status: paymentMethod === "cod" ? "pending" : "completed",
+//         // }
+//     })
+
+//     const orderPlaced = await newOrder.save()
+
+//     res.status(201).json({ message: "Order Placed", orderPlaced })
+
+// });
+
+const payment = catchAsync(async (req, res, next) => {
+  const cart = await Cart.findOne({ user: req.user });
 
 
+  let totalAmount = 0;
+  let deliveryCharges = 0;
+  if (cart.couponStatus) {
+    totalAmount = cart.couponApplied.finalAmount;
+  } else {
+    totalAmount = cart.totalPrice;
+  }
+  const utilites = await utilitesModel.find();
 
-const placeOrder = catchAsync(async (req, res, next) => {
-  const { productId, variantId, quantity } = req.body;
-
-  if (!mongoose.isValidObjectId(productId)) {
-    return next(new AppError("Invalid product ID", 400));
+  if (totalAmount < utilites[0].minimumOrderAmount) {
+    deliveryCharges = utilites[0].deliveryCharges;
+    totalAmount = totalAmount + deliveryCharges;
   }
 
-  const date = new Date();
-  const year = date.getFullYear().toString().slice(-2);
-  const month = (date.getMonth() + 1).toString().padStart(2, "0");
-  const day = date.getDate().toString().padStart(2, "0");
+  // //the 5% off on total amount
+  // const discount = totalAmount * 0.05;
+  // totalAmount = totalAmount - discount;
 
-  const todayStart = new Date(date.setHours(0, 0, 0, 0));
-  const todayEnd = new Date(date.setHours(23, 59, 59, 999));
+  const options = {
+    amount: Math.round(totalAmount * 100), // Ensure it's an integer
+    currency: "INR",
+    receipt: "any unique id for every order",
+  };
 
-  const orderCount = await orderModel.countDocuments({
-    createdAt: {
-      $gte: todayStart,
-      $lte: todayEnd,
-    },
-  });
-
-  const sequence = (orderCount + 1).toString().padStart(4, "0");
-
-  const aggregationPipeline = [
-    {
-      $match: {
-        _id: new mongoose.Types.ObjectId(productId),
-      },
-    },
-    {
-      $lookup: {
-        from: "stores",
-        localField: "store",
-        foreignField: "_id",
-        as: "store",
-      },
-    },
-    {
-      $lookup: {
-        from: "brands",
-        localField: "brand",
-        foreignField: "_id",
-        as: "brand",
-      },
-    },
-    {
-      $lookup: {
-        from: "variants",
-        let: { variantIds: "$variants" },
-        pipeline: [
-          {
-            $match: {
-              $expr: {
-                $and: [
-                  { $in: ["$_id", "$$variantIds"] },
-                  variantId
-                    ? { $eq: ["$_id", new mongoose.Types.ObjectId(variantId)] }
-                    : { $expr: true },
-                ],
-              },
-            },
-          },
-        ],
-        as: "variants",
-      },
-    },
-    {
-      $project: {
-        name: 1,
-        offerPrice: 1,
-        images: {
-          $cond: {
-            if: { $gt: [{ $size: "$variants" }, 0] },
-            then: { $first: "$variants.images" },
-            else: "$images",
-          },
-        },
-        store: { $arrayElemAt: ["$store", 0] },
-        variants: 1,
-        stock: 1,
-        brand: { $arrayElemAt: ["$brand", 0] },
-        sku: "$variants.sku",
-      },
-    },
-  ];
-
-  const [product] = await productModel.aggregate(aggregationPipeline);
-
-  //also check if the product or variant is out of stock
-  if (product.stock < quantity) {
-    return next(new AppError("insufficient stock", 400));
+  try {
+    const response = await razorpayInstance.orders.create(options);
+    res.json({
+      order_id: response.id,
+      currency: response.currency,
+      amount: response.amount,
+    });
+  } catch (err) {
+    console.log(err, "error");
+    res.status(400).send("Not able to create order. Please try again!");
   }
-  if (product.variants?.[0]?.stock < quantity) {
-    return next(new AppError("insufficient stock", 400));
+});
+
+const verifyPayment = catchAsync(async (req, res, next) => {
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature, amount } =
+    req.body;
+
+  const secret = process.env.RAZORPAY_KEY_SECRET;
+  const generated_signature = crypto
+    .createHmac("sha256", secret)
+    .update(`${razorpay_order_id}|${razorpay_payment_id}`)
+    .digest("hex");
+
+  if (generated_signature !== razorpay_signature) {
+    return res.status(400).json({
+      success: false,
+      message: "Invalid signature, payment verification failed!",
+    });
   }
 
-  if (!product) {
-    return next(new AppError("Product not found", 404));
+  // Assuming you have access to userId, validatedProducts, finalAmount, and deliveryAddress
+  const userId = req.user;
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart || cart.items.length === 0) {
+    return next(new AppError("No items in cart to place an order", 400));
   }
 
-  if (variantId && (!product.variants || product.variants.length === 0)) {
-    return next(new AppError("Variant not found", 404));
+  // let totalAmount = amount;
+  const validatedProducts = [];
+
+  for (const item of cart.items) {
+    const product = await productModel
+      .findById(item.product)
+      .populate("variants");
+    if (!product) {
+      return next(new AppError(`Product not found: ${item.product}`, 404));
+    }
+
+    let price;
+    let stock;
+    if (item.variant) {
+      const variant = product.variants.find(
+        (v) => v._id.toString() === item.variant.toString()
+      );
+
+
+      price = variant.offerPrice || variant.price;
+      stock = variant.stock;
+
+      await Variant.findByIdAndUpdate(variant._id, {
+        $inc: { stock: -item.quantity },
+      });
+    } else {
+      if (product.stock < item.quantity) {
+        return next(
+          new AppError(`Insufficient stock for product ${product.name}`, 400)
+        );
+      }
+
+      price = product.offerPrice || product.price;
+      stock = product.stock;
+
+      await productModel.findByIdAndUpdate(product._id, {
+        $inc: { stock: -item.quantity },
+      });
+    }
+
+    // const itemTotal = price * item.quantity;
+
+
+    validatedProducts.push({
+      productId: product._id,
+      variantId: item.variant || null,
+      quantity: item.quantity,
+      price: price,
+    });
   }
 
-  const finalPrice = product.variants?.[0]?.offerPrice || product.offerPrice;
-  const totalAmount = finalPrice * quantity;
+  let finalAmount = amount;
+  // if (cart.couponApplied && cart.couponApplied.discountAmount) {
+  //   finalAmount -= cart.couponApplied.discountAmount;
+  // }
 
-  // Create order ID: STORENAME-YYMMDD-SEQUENCE
-  // Example: NORTHLUX-230901-0001
-  const storeName = (product.store?.store_name || "Northlux")
-    .toUpperCase()
-    .replace(/\s+/g, "");
+  let deliveryAddress = req.body.address;
+  if (mongoose.Types.ObjectId.isValid(deliveryAddress)) {
+    const user = await NormalUser.findById(userId);
+    deliveryAddress = user.address.find(
+      (addr) => addr._id.toString() === deliveryAddress
+    );
+  }
+  const paymentMethod = "ONLINE";
 
-  const orderId = `${storeName}${year}${month}${day}${sequence}`;
+  const newOrder = await createOrder(
+    userId,
+    validatedProducts,
+    finalAmount,
+    deliveryAddress,
+    paymentMethod,
+    razorpay_payment_id
+  );
 
-  const newOrder = new orderModel({
-    orderId,
-    product: product._id,
-    variant: variantId,
-    quantity,
-    totalAmount,
-    store: product.store._id,
-  });
+  if (!newOrder) {
+    return res.status(404).json({ success: false, message: "Order not found" });
+  }
 
-  await newOrder.save();
+  // Delete the cart after placing the order
+  await Cart.findOneAndDelete({ user: userId });
 
   res.status(200).json({
-    status: "success",
+    success: true,
+    message: "Payment verified and order created successfully",
     data: {
-      order: {
-        orderId,
-        productName: product.name + " " + product.variants?.[0]?.attributes?.title || null,
-        productImage: product.images[0],
-        variantName: product.variants?.[0]?.attributes?.title || null,
-        brandName: product.brand?.name || null,
-        sku: product.sku || null,
-        quantity,
-        pricePerUnit: finalPrice,
-        totalAmount,
-        storeName: product.store?.store_name,
-        storeNumber: product.store?.store_number,
-      },
+      razorpay_payment_id,
+      razorpay_order_id,
+      razorpay_signature,
+      order: newOrder,
     },
+  });
+});
+
+const placeOrder = catchAsync(async (req, res, next) => {
+  const userId = req.user;
+  const { address, paymentMethod } = req.body;
+
+  let deliveryAddress;
+  if (mongoose.Types.ObjectId.isValid(address)) {
+    const user = await NormalUser.findById(userId);
+    deliveryAddress = user.address.find(
+      (addr) => addr._id.toString() === address
+    );
+  } else {
+    deliveryAddress = address;
+    if (address?.saveAddress) {
+      const updateUserAddress = await NormalUser.findByIdAndUpdate(userId, {
+        $push: { address: address },
+      });
+    }
+  }
+  const cart = await Cart.findOne({ user: userId });
+  if (!cart || cart.items.length === 0) {
+    return next(new AppError("No items in cart to place an order", 400));
+  }
+
+  let totalAmount = 0;
+  const validatedProducts = [];
+
+  for (const item of cart.items) {
+    const product = await productModel
+      .findById(item.product)
+      .populate("variants");
+
+    if (!product) {
+      return next(new AppError(`Product not found: ${item.product}`, 404));
+    }
+
+    let price;
+    let stock;
+
+    if (item.variant) {
+      const variant = product.variants.find(
+        (v) => v._id.toString() === item.variant.toString()
+      );
+
+      if (!variant) {
+        return next(new AppError(`Variant not found: ${item.variant}`, 404));
+      }
+
+      if (variant.stock < item.quantity) {
+        return next(
+          new AppError(
+            `Insufficient stock for variant ${variant.attributes.title} of ${product.name}`,
+            400
+          )
+        );
+      }
+
+      price = variant.offerPrice || variant.price;
+      stock = variant.stock;
+
+      await Variant.findByIdAndUpdate(variant._id, {
+        $inc: { stock: -item.quantity },
+      });
+    } else {
+      if (product.stock < item.quantity) {
+        return next(
+          new AppError(`Insufficient stock for product ${product.name}`, 400)
+        );
+      }
+
+      price = product.offerPrice || product.price;
+      stock = product.stock;
+
+      await productModel.findByIdAndUpdate(product._id, {
+        $inc: { stock: -item.quantity },
+      });
+    }
+
+    const itemTotal = price * item.quantity;
+    totalAmount += itemTotal;
+
+    validatedProducts.push({
+      productId: product._id,
+      variantId: item.variant || null,
+      quantity: item.quantity,
+      price: price,
+    });
+  }
+
+  // Apply coupon discount if available
+  let finalAmount = totalAmount;
+  if (cart.couponApplied && cart.couponApplied.discountAmount) {
+    finalAmount -= cart.couponApplied.discountAmount;
+  }
+
+
+  let deliveryCharges = 0;
+
+  const utilites = await utilitesModel.find();
+
+  if (cart.totalPrice < utilites[0].minimumOrderAmount) {
+    deliveryCharges = utilites[0].deliveryCharges;
+    finalAmount = finalAmount + deliveryCharges;
+  }
+
+
+
+  let newOrder;
+
+  if (paymentMethod === "ONLINE") {
+    newOrder = await orderModel.findOneAndUpdate(
+      { paymentId: razorpay_payment_id },
+      {
+        paymentStatus: "paid",
+        paymentMethod: "ONLINE",
+        products: validatedProducts,
+        totalAmount: finalAmount,
+        couponApplied: cart.couponApplied,
+        deliveryAddress,
+        paymentId: razorpay_payment_id,
+      }
+    );
+  } else {
+    newOrder = await orderModel.create({
+      user: userId,
+      products: validatedProducts,
+      totalAmount: finalAmount,
+      couponApplied: cart.couponApplied,
+      deliveryAddress,
+      paymentMethod: "COD",
+      paymentStatus: "pending",
+    });
+  }
+
+  // const newOrder = await orderModel.create({
+  //   user: userId,
+  //   products: validatedProducts,
+  //   totalAmount: finalAmount,
+  //   couponApplied: cart.couponApplied,
+  //   deliveryAddress,
+  // });
+
+  // Delete the cart after placing the order
+  await Cart.findOneAndDelete({ user: userId });
+
+  const populatedOrder = await orderModel
+    .findById(newOrder._id)
+    .populate({
+      path: "products.productId",
+      model: "Product",
+      select: "name images category",
+    })
+    .populate({
+      path: "products.variantId",
+      model: "Variant",
+      select: "attributes images price offerPrice stock",
+    })
+    .populate({
+      path: "user",
+      model: "User",
+      select: "name email",
+    });
+
+  if (!populatedOrder) {
+    return next(new AppError("Error creating order", 400));
+  }
+
+  res.status(201).json({
+    success: true,
+    message: "Order placed successfully",
+    order: populatedOrder,
   });
 });
 
@@ -162,7 +410,6 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
   const validStatuses = {
     order: [
       "pending",
-      "confirmed",
       "processed",
       "shipped",
       "delivered",
@@ -191,100 +438,59 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
   }
 
   const updateField = type === "order" ? { status } : { paymentStatus: status };
-  // Find the order first to get product/variant details
+
   const order = await orderModel.findById(orderId);
-
-  const productDetails = await productModel.findById(order.product);
-
-  if (!productDetails) {
-    return next(new AppError("Product not found.", 404));
-  }
-  if (productDetails.isDeleted) {
-    return next(new AppError("Product is deleted.", 404));
-  }
-  if (!order) {
-    return next(new AppError("Order not found.", 404));
+  if (order.status === "cancelled") {
+    return next(new AppError("Order is already cancelled", 400));
   }
 
-  if (type == "order" && status == order.status) {
-    return res.status(200).json({
-      message: `Order status is already ${status}.`,
-      order: order,
-    });
-  }
+  if (status === "cancelled") {
+    const variantBulkOperations = [];
+    const productBulkOperations = [];
 
-  if(type == "payment" && status == order.paymentStatus){
-    return res.status(200).json({
-      message: `Payment status is already ${status}.`,
-      order: order,
-    });
-  }
-
-  // Get the product for stock operations
-  const product = await productModel.findById(order.product);
-  if (!product) {
-    return next(new AppError("Product not found.", 404));
-  }
-
-  // Handle stock changes based on status
-  if (type === "order") {
-    if (status === "confirmed") {
-      // Check if there's enough stock and reduce it
-      if (order.variant) {
-        // Handle variant stock
-        const variant = await variantModel.findById(order.variant);
-        if (!variant) {
-          return next(new AppError("Variant not found.", 404));
-        }
-        if (variant.stock < order.quantity) {
-          return next(new AppError("Insufficient stock for variant.", 400));
-        }
-
-        // Reduce variant stock
-        variant.stock -= order.quantity;
-
-        if (variant.stock === 0) {
-          variant.stockStatus = "outofstock";
-        }
-        await variant.save();
+    for (const product of order.products) {
+      if (product?.variantId && product?.variantId !== null) {
+        variantBulkOperations.push({
+          updateOne: {
+            filter: { _id: product.variantId },
+            update: { $inc: { stock: product.quantity } },
+          },
+        });
       } else {
-        // Handle main product stock
-        if (product.stock < order.quantity) {
-          return next(new AppError("Insufficient stock for product.", 400));
-        }
-        // Reduce product stock
-        product.stock -= order.quantity;
-        if (product.stock === 0) {
-          product.stockStatus = "outofstock";
-        }
-      }
-    } else if (["cancelled"].includes(status)) {
-      if (order.variant) {
-        // Increase variant stock
-        const variantData = await variantModel.findById(order.variant);
-
-        if (!variantData) {
-          return next(new AppError("Variant not found.", 404));
-        }
-
-        variantData.stock += order.quantity;
-        await variantData.save();
-      } else {
-        product.stock += order.quantity;
+        productBulkOperations.push({
+          updateOne: {
+            filter: { _id: product.productId },
+            update: { $inc: { stock: product.quantity } },
+          },
+        });
       }
     }
 
-    // Save product changes if any stock modifications were made
-    await product.save();
+    // Execute bulk operations separately for variants and products
+    if (variantBulkOperations.length > 0) {
+      await Variant.bulkWrite(variantBulkOperations);
+    }
+
+    if (productBulkOperations.length > 0) {
+      await productModel.bulkWrite(productBulkOperations);
+    }
   }
 
-  // Update the order status
   const updatedOrder = await orderModel
     .findByIdAndUpdate(orderId, updateField, { new: true })
     .populate({
-      path: "product",
+      path: "products.productId",
       select: "name images price category",
-    });
+      populate: {
+        path: "category",
+        select: "name",
+      },
+    })
+    .populate("user", "username phonenumber address");
+
+  if (!updatedOrder) {
+    return next(new AppError("Order not found.", 404));
+  }
 
   return res.status(200).json({
     success: true,
@@ -294,37 +500,12 @@ const updateOrderStatus = catchAsync(async (req, res, next) => {
 });
 
 const filterOrders = catchAsync(async (req, res, next) => {
-  const {
-    status,
-    startDate,
-    endDate,
-    category,
-    page = 1,
-    limit = 10,
-    store,
-    type,
-  } = req.query;
+  const { status, startDate, endDate, category, page, limit } = req.query;
 
   let filterCriteria = {};
 
-  if (req.role !== "admin") {
-    filterCriteria.store = new mongoose.Types.ObjectId(req.user);
-  }
-
-  if(type === "enquiry"){
-    filterCriteria.status = "pending";
-  }else{
-    filterCriteria.status = { $ne: "pending" };
-  }
-
-  if (status && type !== "enquiry") {
+  if (status) {
     filterCriteria.status = status;
-  }
-
- 
-
-  if (category) {
-    filterCriteria.category = new mongoose.Types.ObjectId(category);
   }
 
   if (startDate || endDate) {
@@ -332,162 +513,56 @@ const filterOrders = catchAsync(async (req, res, next) => {
     if (startDate) filterCriteria.createdAt.$gte = new Date(startDate);
     if (endDate) filterCriteria.createdAt.$lte = new Date(endDate);
   }
-  if (store) {
-    filterCriteria.store = new mongoose.Types.ObjectId(store);
+
+  const skip = (page - 1) * limit;
+
+  let orders = await orderModel
+    .find(filterCriteria)
+    .populate({
+      path: "products.productId",
+      select: "name images price category",
+      populate: {
+        path: "category",
+        select: "name",
+      },
+    })
+    .populate({
+      path: "products.variantId",
+      model: "Variant",
+      select: "attributes stock images",
+    })
+    .populate("user", "username phonenumber address")
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  let totalOrders = await orderModel.countDocuments(filterCriteria);
+  if (status === "cancelled") {
+    totalOrders = await orderModel.countDocuments({ status: "cancelled" });
+  }
+  let totalPages = Math.ceil(totalOrders / limit);
+
+  if (category) {
+    orders = orders.filter((order) =>
+      order.products.some(
+        (product) => product.productId?.category?._id.toString() === category
+      )
+    );
+    totalOrders = orders.length;
+    totalPages = Math.ceil(totalOrders / limit);
   }
 
-  const skip = (parseInt(page) - 1) * parseInt(limit);
-
-  const aggregationPipeline = [
-    // Match stage for initial filtering
-    {
-      $match: filterCriteria,
-    },
-    // Lookup product details
-    {
-      $lookup: {
-        from: "products",
-        localField: "product",
-        foreignField: "_id",
-        as: "product",
-      },
-    },
-    // Unwind product array
-    {
-      $unwind: {
-        path: "$product",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    {
-      $lookup: {
-        from: "categories",
-        localField: "product.category",
-        foreignField: "_id",
-        as: "product.category",
-      },
-    },
-
-    {
-      $lookup: {
-        from: "stores",
-        localField: "product.store",
-        foreignField: "_id",
-        as: "product.store",
-      },
-    },
-    {
-      $unwind: {
-        path: "$product.category",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-
-    {
-      $lookup: {
-        from: "variants",
-        localField: "variant",
-        foreignField: "_id",
-        as: "variant",
-      },
-    },
-
-    {
-      $unwind: {
-        path: "$variant",
-        preserveNullAndEmptyArrays: true,
-      },
-    },
-    // Sort by creation date
-    {
-      $sort: { createdAt: -1 },
-    },
-    // Skip and limit for pagination
-    {
-      $skip: skip,
-    },
-    {
-      $limit: limit,
-    },
-    // Project stage to shape the output
-    {
-      $project: {
-        _id: 1,
-        orderId: 1,
-        quantity: 1,
-        totalAmount: 1,
-        createdAt: 1,
-        status: 1,
-        paymentStatus: 1,
-        mobile: 1,
-        address: 1,
-        store: {
-          _id: { $arrayElemAt: ["$product.store._id", 0] },
-          name: { $arrayElemAt: ["$product.store.store_name", 0] },
-          phone: { $arrayElemAt: ["$product.store.store_number", 0] },
-          email: { $arrayElemAt: ["$product.store.email", 0] },
-        },
-        productDetails: {
-          $cond: {
-            if: { $ifNull: ["$variant", false] },
-            then: {
-              _id: "$variant._id",
-              name: "$product.name",
-              variantName: "$variant.attributes.title",
-              price: "$variant.offerPrice",
-              images: "$variant.images",
-              stock: "$variant.stock",
-              category: {
-                _id: "$product.category._id",
-                name: "$product.category.name",
-              },
-              hasVariant: true,
-            },
-            else: {
-              _id: "$product._id",
-              name: "$product.name",
-              price: "$product.offerPrice",
-              images: "$product.images",
-              stock: "$product.stock",
-              category: {
-                _id: "$product.category._id",
-                name: "$product.category.name",
-              },
-              hasVariant: false,
-            },
-          },
-        },
-      },
-    },
-  ];
-
-  // Execute aggregation
-  const orders = await orderModel.aggregate(aggregationPipeline);
-
-  // Get total count for pagination
-  const countPipeline = [
-    { $match: filterCriteria },
-    {
-      $count: "total",
-    },
-  ];
-
-  const [countResult] = await orderModel.aggregate(countPipeline);
-  const totalOrders = countResult ? countResult.total : 0;
-  const totalPages = Math.ceil(totalOrders / parseInt(limit));
+  if (orders.length === 0) {
+    return res
+      .status(404)
+      .json({ message: "No orders found matching the criteria." });
+  }
 
   res.status(200).json({
-    status: "success",
-    data: {
-      orders,
-      pagination: {
-        total: totalOrders,
-        page: parseInt(page),
-        limit: parseInt(limit),
-        totalPages,
-      },
-    },
+    message: "Orders retrieved successfully",
+    orders,
+    totalOrders,
+    totalPages,
   });
 });
 
@@ -549,9 +624,7 @@ const getUserOrders = catchAsync(async (req, res, next) => {
 const cancelOrder = catchAsync(async (req, res, next) => {
   const { orderId } = req.params;
   const userId = req.user;
-
   const order = await orderModel.findById(orderId);
-
   if (!order) {
     return next(new AppError("Order not found", 404));
   }
@@ -585,54 +658,107 @@ const cancelOrder = catchAsync(async (req, res, next) => {
   });
 });
 
+// const getAllOrders = catchAsync(async (req, res, next) => {
+//   // Get page and limit from query params, set defaults if not provided
+//   const page = parseInt(req.query.page) || 1;
+//   const limit = parseInt(req.query.limit) || 10;
+//   const skip = (page - 1) * limit;
+
+//   try {
+//     // Get total count for pagination
+//     const totalOrders = await orderModel.countDocuments();
+//     const totalPages = Math.ceil(totalOrders / limit);
+
+//     // Fetch orders with pagination and populate necessary fields
+//     const orders = await orderModel
+//       .find()
+//       .populate({
+//         path: "user",
+//         select: "username email phone", // Add the fields you want from user
+//       })
+//       .populate({
+//         path: "products.productId",
+//         select: "name images price offerPrice variant", // Add the fields you want from product
+//         populate: {
+//           path: "category",
+//           select: "name",
+//         },
+//       })
+//       .populate({
+//         path: "products.variantId",
+//       })
+//       .sort({ createdAt: -1 }) // Sort by newest first
+//       .skip(skip)
+//       .limit(limit);
+
+//     // Calculate pagination info
+//     const paginationInfo = {
+//       currentPage: page,
+//       totalPages,
+//       totalOrders,
+//       hasNextPage: page < totalPages,
+//       hasPrevPage: page > 1,
+//       nextPage: page < totalPages ? page + 1 : null,
+//       prevPage: page > 1 ? page - 1 : null,
+//       limit,
+//     };
+
+//     // Group orders by status for analytics
+//     const orderAnalytics = {
+//       total: totalOrders,
+//       completed: await orderModel.countDocuments({ status: "delivered" }),
+//       confirmed: await orderModel.countDocuments({ status: "processing" }),
+//       cancelled: await orderModel.countDocuments({ status: "cancelled" }),
+//       refunded: await orderModel.countDocuments({ status: "refunded" }),
+//     };
+
+//     res.status(200).json({
+//       status: "success",
+//       message: "Orders fetched successfully",
+//       data: {
+//         orders,
+//         pagination: paginationInfo,
+//         analytics: orderAnalytics,
+//       },
+//     });
+//   } catch (error) {
+//     return next(new AppError("Error fetching orders", 500));
+//   }
+// });
 
 const orderStats = catchAsync(async (req, res, next) => {
-  const { user, role } = req;
-  const stats = await getOrderStats(user, role);
+  const stats = await getOrderStats();
   res.status(200).json({
     message: "Order statistics retrieved successfully",
     stats,
   });
 });
 
-const updateOrder = catchAsync(async (req, res, next) => {
-  const { orderId } = req.params;
-  const { mobile, address } = req.body;
+async function createOrder(
+  userId,
+  validatedProducts,
+  finalAmount,
+  deliveryAddress,
+  paymentMethod,
+  paymentId = null
+) {
+  const orderData = {
+    user: userId,
+    products: validatedProducts,
+    totalAmount: finalAmount,
+    deliveryAddress,
+    paymentMethod,
+    paymentStatus: paymentMethod === "ONLINE" ? "paid" : "pending",
+  };
 
-  // Validate mobile number
-  const mobileRegex = /^\d{10}$/;
-  if (mobile && !mobileRegex.test(mobile)) {
-    return next(
-      new AppError("Invalid mobile number. It must be 10 digits.", 400)
-    );
+  if (paymentId) {
+    orderData.paymentId = paymentId;
   }
 
-  const order = await orderModel.findByIdAndUpdate(
-    { _id: orderId },
-    { mobile, address },
-    { new: true }
-  );
+  const newOrder = await orderModel.create(orderData);
 
-  if (!order) {
-    return next(new AppError("Order not found", 404));
-  }
-
-  res.status(200).json({
-    message: "Contact details updated successfully",
-    order,
-    success: true,
-  });
-});
-
-const deleteEnquiry = catchAsync(async (req, res, next) => {
-  const { enquiryId } = req.params;
-  const enquiry = await orderModel.findByIdAndDelete(enquiryId);
-  res.status(200).json({
-    message: "Enquiry deleted successfully",
-    enquiry,
-  });
-});
-
+  return newOrder;
+}
 
 module.exports = {
   placeOrder,
@@ -642,6 +768,6 @@ module.exports = {
   getUserOrders,
   cancelOrder,
   orderStats,
-  updateOrder,
-  deleteEnquiry
+  payment,
+  verifyPayment,
 };

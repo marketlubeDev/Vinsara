@@ -1,16 +1,18 @@
 import { useEffect, useRef } from "react";
 import apiClient from "../../api/client";
 import { toast } from "sonner";
-
+import { useNavigate } from "react-router-dom";
 // Function to load script and append in DOM tree.
 const loadScript = (src) =>
   new Promise((resolve) => {
     const script = document.createElement("script");
     script.src = src;
     script.onload = () => {
+      console.log("razorpay loaded successfully");
       resolve(true);
     };
     script.onerror = () => {
+      console.log("error in loading razorpay");
       resolve(false);
     };
     document.body.appendChild(script);
@@ -23,7 +25,10 @@ const RenderRazorpay = ({
   currency,
   amount,
   address,
+  setDisplayRazorpay,
+  onCancel,
 }) => {
+  const navigate = useNavigate();
   const paymentId = useRef(null);
   const paymentMethod = useRef(null);
 
@@ -34,6 +39,7 @@ const RenderRazorpay = ({
     );
 
     if (!res) {
+      console.log("Razorpay SDK failed to load. Are you online?");
       return;
     }
     // All information is loaded in options which we will discuss later.
@@ -57,22 +63,21 @@ const RenderRazorpay = ({
   const handlePayment = async (status, orderDetails) => {
     if (status === "succeeded") {
       try {
-        await apiClient.post("/placeOrder", {
-          address: address,
-          paymentMethod: "razorpay",
-          razorpay_payment_id: orderDetails.razorpay_payment_id,
-        });
-
         toast.success("Order placed successfully!");
+        navigate("/payment-success");
         // Handle successful order (e.g., redirect to order confirmation)
       } catch (e) {
         toast.error("Payment verification failed");
+        onCancel();
         // Handle verification failure
       }
     } else if (status === "failed") {
       toast.error("payment failed");
+      setDisplayRazorpay(false);
     } else if (status === "cancelled") {
       toast.error("payment cancelled");
+      setDisplayRazorpay(false);
+      onCancel();
     }
   };
 
@@ -81,23 +86,24 @@ const RenderRazorpay = ({
     key: keyId, // key id from props
     amount, // Amount in lowest denomination from props
     currency, // Currency from props.
-    name: "amit", // Title for your organization to display in checkout modal
+    name: "Vinsara", // Title for your organization to display in checkout modal
     // image, // custom logo  url
     order_id: orderId, // order id from props
     // This handler menthod is always executed in case of succeeded payment
     handler: async (response) => {
       paymentId.current = response.razorpay_payment_id;
 
-      // Most important step to capture and authorize the payment. This can be done of Backend server.
-      // const succeeded = crypto.HmacSHA256(`${orderId}|${response.razorpay_payment_id}`, keySecret).toString() === response.razorpay_signature;
+      const verificationResponse = await apiClient.post(
+        "/order/paymentVerify",
+        {
+          razorpay_payment_id: response.razorpay_payment_id,
+          razorpay_order_id: response.razorpay_order_id,
+          razorpay_signature: response.razorpay_signature,
+          address: address,
+          amount: amount / 100,
+        }
+      );
 
-      const verificationResponse = await apiClient.post("/paymentVerify", {
-        razorpay_payment_id: response.razorpay_payment_id,
-        razorpay_order_id: response.razorpay_order_id,
-        razorpay_signature: response.razorpay_signature,
-      });
-
-      // If successfully authorized. Then we can consider the payment as successful.
       if (verificationResponse.data.success) {
         handlePayment("succeeded", response);
       } else {
@@ -118,15 +124,9 @@ const RenderRazorpay = ({
         // Reason 1 - when payment is cancelled. It can happend when we click cross icon or cancel any payment explicitly.
         if (reason === undefined) {
           handlePayment("cancelled");
-        }
-        // Reason 2 - When modal is auto closed because of time out
-        else if (reason === "timeout") {
-         
+        } else if (reason === "timeout") {
           handlePayment("timedout");
-        }
-        // Reason 3 - When payment gets failed.
-        else {
-    
+        } else {
           handlePayment("failed", {
             paymentReason,
             field,
@@ -138,12 +138,10 @@ const RenderRazorpay = ({
     },
     // This property allows to enble/disable retries.
     // This is enabled true by default.
-    retry: {
-      enabled: false,
-    },
+
     timeout: 900, // Time limit in Seconds
     theme: {
-      color: "", // Custom color for your checkout modal.
+      color: "#ffb64a", // Custom color for your checkout modal.
     },
   };
 

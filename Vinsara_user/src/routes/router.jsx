@@ -7,6 +7,11 @@ import AllProducts from "../pages/productpage/Allproducts";
 import ProductDetails from "../pages/productpage/ProductDetails";
 import BrandPage from "../pages/BrandPage/BrandPage";
 import { BrandListing } from "../pages/BrandPage/BrandListing";
+import Login from "../pages/Loginpage/Login";
+import { Verification } from "../pages/OTP/Verification";
+import Cartpage from "../pages/cartPage/cartPage";
+import PaymentSuccess from "../pages/payment/PaymentSuccess";
+
 const error = new Error("Page Not Found", { cause: 404 });
 
 // Create a wrapper component for ErrorBoundary
@@ -30,6 +35,20 @@ const router = createBrowserRouter([
     element: <Userlayout />,
     errorElement: <ErrorFallback error={error} />,
     children: [
+      {
+        path: "/login",
+        element: <WithErrorBoundary>
+          <Login />
+        </WithErrorBoundary>
+      },
+      {
+        path: "/otp",
+        element: (
+          <WithErrorBoundary>
+            <Verification />
+          </WithErrorBoundary>
+        ),
+      },
       {
         path: "/",
         element: (
@@ -56,13 +75,21 @@ const router = createBrowserRouter([
       },
 
       {
-        path: "/brands",
-        element: <BrandListing />,
+        path: "/cart",
+        element: (
+          <WithErrorBoundary>
+            <Cartpage />
+          </WithErrorBoundary>
+        )
       },
       {
-        path: "/brands/:id",
-        element: <BrandPage />,
-      },
+        path: "/payment-success",
+        element: (
+          <WithErrorBoundary>
+            <PaymentSuccess />
+          </WithErrorBoundary>
+        )
+      }
     ],
   },
 ]);
