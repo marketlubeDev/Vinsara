@@ -42,7 +42,7 @@ function Homepage() {
     <div>
       <Carousel data={heroBanners} isLoading={isLoading} />
       <ShopBy />
-      <div className="divider-home" />
+      {/* <div className="divider-home" /> */}
       {activeOffers?.length > 0 && (
         <>
           {" "}
@@ -58,14 +58,14 @@ function Homepage() {
         groupLabels?.data?.length > 0 &&
         groupLabels?.data?.map((label, index) => (
           <React.Fragment key={label?.label}>
-            <div className="divider-home" />
+            {/* <div className="divider-home" /> */}
             <Sections label={label} />
 
             {(index + 1) % 2 === 0 && index !== groupLabels.data.length - 1 && (
               <>
                 {offerBanner?.[Math.floor(index / 2) + 1] && (
                   <>
-                    <div className="divider-home" />
+                    {/* <div className="divider-home" /> */}
                     <Offer
                       banners={offerBanner[Math.floor(index / 2) + 1].banners}
                       isLoading={offerBannerLoading}
@@ -78,7 +78,7 @@ function Homepage() {
           </React.Fragment>
         ))}
       {/* Show remaining offer banner sections if any */}
-      <div className="divider-home" />
+      {/* <div className="divider-home" /> */}
       {offerBanner
         ?.slice(Math.ceil(groupLabels?.data?.length / 2))
         .map((section) => (
@@ -88,7 +88,7 @@ function Homepage() {
               isLoading={offerBannerLoading}
               error={null}
             />
-            <div className="divider-home" />
+            {/* <div className="divider-home" /> */}
           </React.Fragment>
         ))}
     </div>
