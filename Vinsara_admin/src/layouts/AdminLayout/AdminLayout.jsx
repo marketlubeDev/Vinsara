@@ -13,7 +13,7 @@ function AdminLayout() {
   const menuItems = [
     { name: "Dashboard", path: "/admin" },
     { name: "Products", path: "product" },
-    {name:"Enquiries", path:"enquiry"},
+    // {name:"Enquiries", path:"enquiry"},
     { name: "Orders", path: "order" },
     // { name: "Stores", path: "store" },
     { name: "Categories", path: "category" },
@@ -24,8 +24,8 @@ function AdminLayout() {
     { name: "Banners", path: "banner" },
     { name: "Banners With Links", path: "banner-with-link" },
     { name: "Active Offers", path: "active-offer" },
-    { name: "Sales", path: "sales" },
-    { name: "Feedbacks", path: "feedback" },
+    // { name: "Sales", path: "sales" },
+    // { name: "Feedbacks", path: "feedback" },
     { name: "Inventory", path: "inventory" },
   ];
   const navigate = useNavigate();

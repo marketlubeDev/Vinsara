@@ -11,6 +11,8 @@ import Login from "../pages/Loginpage/Login";
 import { Verification } from "../pages/OTP/Verification";
 import Cartpage from "../pages/cartPage/cartPage";
 import PaymentSuccess from "../pages/payment/PaymentSuccess";
+import ProtectedRoute from "../components/route/ProtectedRoute";
+import Profile from "../pages/profile/Profile";
 
 const error = new Error("Page Not Found", { cause: 404 });
 
@@ -89,6 +91,16 @@ const router = createBrowserRouter([
             <PaymentSuccess />
           </WithErrorBoundary>
         )
+      },
+      {
+        path: "/profile",
+        element: (
+          <WithErrorBoundary>
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          </WithErrorBoundary>
+        ),
       }
     ],
   },

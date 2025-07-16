@@ -9,6 +9,13 @@ const orderService = {
     const response = await apiClient.get("/order/get-user-orders");
     return response.data;
   },
+  updateOrderStatus: async (orderId, status, type) => {
+    const response = await apiClient.patch(`/order/change-status/${orderId}`, {
+      status,
+      type,
+    });
+    return response.data;
+  },
 };
 
 export default orderService;

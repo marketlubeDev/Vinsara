@@ -5,25 +5,19 @@ import { getcategoriesbrands } from "../../sevices/adminApis";
 import {
   getOrders,
   getOrderStats,
-  updateOrder,
   updateOrderStatus,
 } from "../../sevices/OrderApis";
 import LoadingSpinner from "../../components/spinner/LoadingSpinner";
 import { useEffect, useState, useRef } from "react";
 import { TfiReload } from "react-icons/tfi";
 import { toast } from "react-toastify";
-import { Popover, Transition } from "@headlessui/react";
-import { Fragment } from "react";
-import { createPortal } from "react-dom";
-import { useSelector } from "react-redux";
+import { FiSettings } from "react-icons/fi";
+import {
+  getShipmentCharges,
+  updateShipmentCharges,
+} from "../../sevices/utilitiesApis";
 
-import { FaRegEdit } from "react-icons/fa";
-import { Modal } from "../../components/shared/Modal";
-import Pagination from "../../components/Admin/Product/components/Pagination/Pagination";
-
-function Orders({ role }) {
-  const store = useSelector((state) => state.store.store);
-  const stores = useSelector((state) => state.adminUtilities.stores);
+function Orders() {
   const [formUtilites, setFormUtilites] = useState([]);
   const [orders, setOrders] = useState([]);
   const [orderStats, setOrderStats] = useState(null);
@@ -32,38 +26,29 @@ function Orders({ role }) {
   const [selectedCategory, setSelectedCategory] = useState("");
   const [selectedStatus, setSelectedStatus] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
-  const [selectedStore, setSelectedStore] = useState("");
+  const [deliveryCharge, setDeliveryCharge] = useState(0);
+  const [minAmountForFreeDelivery, setMinAmountForFreeDelivery] = useState(0);
+  const [isPopupOpen, setIsPopupOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
-  const [totalPages, setTotalPages] = useState(1);
+  const [ordersPerPage] = useState(25);
+  const [totalOrders, setTotalOrders] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
 
-  useEffect(() => {
-    if (role === "store") {
-      setSelectedStore(store._id);
-    }
-  }, [role, store]);
-
-  const orderStatuses =  [
+  const orderStatuses = [
     "pending",
-    "confirmed",
     "processed",
     "shipped",
     "delivered",
     "cancelled",
-    "refunded",
-    "onrefund",
   ];
 
-  // Move fetchData outside of useEffect so it can be reused
-  const fetchData = async (page = currentPage) => {
+  const fetchData = async () => {
     try {
       setIsLoading(true);
       const [startDate, endDate] = dateRange;
 
       let queryParams = [];
 
-      // Add page to query params
-      queryParams.push(`page=${page}`);
-      queryParams.push(`type=order`);
       if (startDate && endDate) {
         const formattedStartDate = new Date(
           startDate.setHours(0, 0, 0, 0)
@@ -71,7 +56,6 @@ function Orders({ role }) {
         const formattedEndDate = new Date(
           endDate.setHours(23, 59, 59, 999)
         ).toISOString();
-
         queryParams.push(`startDate=${formattedStartDate}`);
         queryParams.push(`endDate=${formattedEndDate}`);
       }
@@ -84,21 +68,20 @@ function Orders({ role }) {
         queryParams.push(`status=${selectedStatus.toLowerCase()}`);
       }
 
-      if (selectedStore) {
-        queryParams.push(`store=${selectedStore}`);
-      }
+      queryParams.push(`page=${currentPage}`);
+      queryParams.push(`limit=${ordersPerPage}`);
 
-      const queryString = `?${queryParams.join("&")}`;
+      const queryString =
+        queryParams.length > 0 ? `?${queryParams.join("&")}` : "";
 
       const [ordersRes, statsRes] = await Promise.all([
         getOrders(queryString),
         getOrderStats(),
       ]);
-
-      setOrders(ordersRes?.data?.orders);
+      setOrders(ordersRes.orders);
       setOrderStats(statsRes.stats);
-      setTotalPages(ordersRes?.data?.pagination?.totalPages || 1);
-      setCurrentPage(ordersRes?.data?.pagination?.page || 1);
+      setTotalOrders(ordersRes.totalOrders);
+      setTotalPages(ordersRes.totalPages);
       setErrorMessage("");
     } catch (err) {
       setOrders([]);
@@ -108,10 +91,23 @@ function Orders({ role }) {
     }
   };
 
-  // Update useEffect to use the new fetchData function
+  // const getUtilities = async () => {
+  //   try {
+  //     const res = await getShipmentCharges();
+  //     setDeliveryCharge(res?.[0]?.deliveryCharges);
+  //     setMinAmountForFreeDelivery(res?.[0]?.minimumOrderAmount);
+  //   } catch (err) {
+  //     toast.error("Failed to fetch utilities");
+  //   }
+  // };
   useEffect(() => {
-    fetchData(1); // Reset to first page when filters change
-  }, [dateRange, selectedCategory, selectedStatus, selectedStore]);
+    fetchData();
+    setCurrentPage(1);
+  }, [dateRange, selectedCategory, selectedStatus]);
+
+  useEffect(() => {
+    fetchData();
+  }, [currentPage]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -123,18 +119,8 @@ function Orders({ role }) {
       }
     };
     fetchData();
+    // getUtilities();
   }, []);
-
-  const handlePageChange = (page) => {
-    if (page !== currentPage) {
-      fetchData(page);
-    }
-  };
-
-  // Reset pagination when filters change
-  useEffect(() => {
-    setCurrentPage(1);
-  }, [dateRange, selectedCategory, selectedStatus, selectedStore]);
 
   const ConfirmationPopup = ({ isOpen, onClose, onConfirm, status }) => {
     if (!isOpen) return null;
@@ -166,18 +152,38 @@ function Orders({ role }) {
   };
 
   const StatusDropdown = ({ currentStatus, options, onStatusChange, type }) => {
+    const [isOpen, setIsOpen] = useState(false);
     const [showConfirmation, setShowConfirmation] = useState(false);
     const [selectedStatus, setSelectedStatus] = useState(null);
-    const buttonRef = useRef(null);
+    const dropdownRef = useRef(null);
 
     // Check if status changes should be disabled
-    // const isStatusChangeDisabled = currentStatus === "delivered";
-    const isStatusChangeDisabled = false;
+    const isStatusChangeDisabled = currentStatus === "delivered";
+
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          dropdownRef.current &&
+          !dropdownRef.current.contains(event.target)
+        ) {
+          setIsOpen(false);
+        }
+      };
+
+      if (isOpen) {
+        document.addEventListener("mousedown", handleClickOutside);
+      }
+
+      return () => {
+        document.removeEventListener("mousedown", handleClickOutside);
+      };
+    }, [isOpen]);
 
     const handleStatusClick = (status) => {
       if (isStatusChangeDisabled) return;
       setSelectedStatus(status);
       setShowConfirmation(true);
+      setIsOpen(false);
     };
 
     const handleConfirm = () => {
@@ -218,133 +224,83 @@ function Orders({ role }) {
     };
 
     return (
-      <td className="px-6 py-4">
-        <Popover className="relative">
-          {({ open }) => (
-            <>
-              <Popover.Button
-                ref={buttonRef}
-                className={`
-                  ${open ? "outline-none ring-2 ring-indigo-500" : ""}
-                  inline-flex items-center gap-2
-                  ${
-                    isStatusChangeDisabled
-                      ? "cursor-not-allowed opacity-75"
-                      : ""
-                  }
-                `}
-                disabled={isStatusChangeDisabled}
-                title={
-                  isStatusChangeDisabled
-                    ? "Status cannot be changed after delivery"
-                    : ""
-                }
+      <td className="px-6 py-4 relative">
+        <div className="relative" ref={dropdownRef}>
+          <button
+            onClick={() => !isStatusChangeDisabled && setIsOpen(!isOpen)}
+            className={`inline-flex items-center gap-2 ${isStatusChangeDisabled ? "cursor-not-allowed opacity-75" : ""
+              }`}
+            disabled={isStatusChangeDisabled}
+            title={
+              isStatusChangeDisabled
+                ? "Status cannot be changed after delivery"
+                : ""
+            }
+          >
+            <span
+              className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
+                currentStatus
+              )}`}
+            >
+              {formatStatusDisplay(currentStatus)}
+            </span>
+            {!isStatusChangeDisabled && (
+              <svg
+                className="w-4 h-4"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
               >
-                <span
-                  className={`px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                    currentStatus
-                  )}`}
-                >
-                  {formatStatusDisplay(currentStatus)}
-                </span>
-                {!isStatusChangeDisabled && (
-                  <svg
-                    className={`w-4 h-4 transition-transform duration-200 ${
-                      open ? "transform rotate-180" : ""
-                    }`}
-                    fill="none"
-                    stroke="currentColor"
-                    viewBox="0 0 24 24"
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M19 9l-7 7-7-7"
+                />
+              </svg>
+            )}
+          </button>
+
+          {isOpen && !isStatusChangeDisabled && (
+            <div
+              className="absolute rounded-md shadow-lg bg-white ring-1 ring-black ring-opacity-5"
+              style={{
+                zIndex: 50,
+                marginTop: "0.5rem",
+                minWidth: "150px",
+              }}
+            >
+              <div className="py-1" role="menu">
+                {options?.map((status) => (
+                  <button
+                    key={status}
+                    onClick={() => handleStatusClick(status)}
+                    className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left ${currentStatus === status ? "bg-gray-50" : ""
+                      }`}
                   >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      strokeWidth="2"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                )}
-              </Popover.Button>
-
-              {typeof window !== "undefined" &&
-                createPortal(
-                  <Transition
-                    as={Fragment}
-                    enter="transition ease-out duration-200"
-                    enterFrom="opacity-0 translate-y-1"
-                    enterTo="opacity-100 translate-y-0"
-                    leave="transition ease-in duration-150"
-                    leaveFrom="opacity-100 translate-y-0"
-                    leaveTo="opacity-0 translate-y-1"
-                  >
-                    <Popover.Panel
-                      className="fixed z-[100] w-48 bg-white rounded-md shadow-lg ring-1 ring-black ring-opacity-5"
-                      style={{
-                        ...(() => {
-                          const buttonRect =
-                            buttonRef.current?.getBoundingClientRect();
-                          if (!buttonRect) return {};
-
-                          const spaceBelow =
-                            window.innerHeight - buttonRect.bottom;
-                          const spaceAbove = buttonRect.top;
-                          const dropdownHeight = 300; // Approximate height of dropdown
-
-                          // If there's not enough space below and more space above, position above
-                          if (
-                            spaceBelow < dropdownHeight &&
-                            spaceAbove > spaceBelow
-                          ) {
-                            return {
-                              bottom: `${
-                                window.innerHeight - buttonRect.top
-                              }px`,
-                              left: `${buttonRect.left}px`,
-                              transform: "translateY(-8px)",
-                            };
-                          }
-
-                          // Default position (below)
-                          return {
-                            top: `${buttonRect.bottom}px`,
-                            left: `${buttonRect.left}px`,
-                            transform: "translateY(8px)",
-                          };
-                        })(),
-                      }}
-                    >
-                      <div className="py-1">
-                        {options?.map((status) => (
-                          <button
-                            key={status}
-                            onClick={() => handleStatusClick(status)}
-                            className={`
-                            block w-full px-4 py-2 text-sm text-left text-gray-700 hover:bg-gray-100
-                            ${currentStatus === status ? "bg-gray-50" : ""}
-                          `}
-                          >
-                            {formatStatusDisplay(status)}
-                          </button>
-                        ))}
-                      </div>
-                    </Popover.Panel>
-                  </Transition>,
-                  document.body
-                )}
-            </>
+                    {formatStatusDisplay(status)}
+                  </button>
+                ))}
+              </div>
+            </div>
           )}
-        </Popover>
 
-        <ConfirmationPopup
-          isOpen={showConfirmation}
-          onClose={() => setShowConfirmation(false)}
-          onConfirm={handleConfirm}
-          status={`${
-            type === "payment" ? "Payment" : "Order"
-          } status to ${formatStatusDisplay(selectedStatus)}`}
-        />
+          <ConfirmationPopup
+            isOpen={showConfirmation}
+            onClose={() => setShowConfirmation(false)}
+            onConfirm={handleConfirm}
+            status={`${type === "payment" ? "Payment" : "Order"
+              } status to ${formatStatusDisplay(selectedStatus)}`}
+          />
+        </div>
       </td>
     );
+  };
+
+  const formatDate = (dateString) => {
+    const date = new Date(dateString);
+    const options = { year: "numeric", month: "short", day: "numeric" };
+    return date.toLocaleDateString("en-US", options);
   };
 
   const TableRow = ({ order }) => {
@@ -352,445 +308,541 @@ function Orders({ role }) {
       order.paymentStatus || "pending"
     );
     const [orderStatus, setOrderStatus] = useState(order.status || "pending");
-    const [isEditMobileModalOpen, setIsEditMobileModalOpen] = useState(false);
-    const [updateData, setUpdateData] = useState({
-      mobile: order.mobile || null,
-      address: order.address || "",
-    });
 
     const paymentOptions = [
       "pending",
       "paid",
       "failed",
-      "refunded",
-      "onrefund",
+      // "refunded",
+      // "onrefund",
     ];
     const orderOptions = [
       "pending",
-      "confirmed",
       "processed",
       "shipped",
       "delivered",
       "cancelled",
-      "refunded",
-      "onrefund",
+      // "refunded",
+      // "onrefund",
     ];
 
     const handlePaymentStatusChange = async (newStatus) => {
       try {
         const result = await updateOrderStatus(order._id, newStatus, "payment");
-        if (result?.data?.success) {
+        if (result.success) {
           setPaymentStatus(newStatus);
-          toast.success(result?.data?.message);
+          toast.success(result.message);
           // Refresh data after successful status update
           await fetchData();
         } else {
-          toast.error(result?.data?.message);
+          toast.error(result.message);
         }
       } catch (error) {
-        toast.error(error?.response?.data?.message || "Failed to update payment status");
+        console.log(error);
+        toast.error("Failed to update payment status");
       }
     };
 
     const handleOrderStatusChange = async (newStatus) => {
+
       try {
         const result = await updateOrderStatus(order._id, newStatus, "order");
-        if (result?.data?.success) {
+        if (result.success) {
           setOrderStatus(newStatus);
-          toast.success(result?.data?.message);
+          toast.success(result.message);
           // Refresh data after successful status update
           await fetchData();
-        } 
-      } catch (error) {
-        toast.error(error?.response?.data?.message || "Failed to update order status");
-      }
-    };
-
-    const getAvailableOrderOptions = () => {
-      // if (orderStatus === "delivered") {
-      //   return ["delivered"]; // Only show current status if delivered
-      // }
-      return orderOptions;
-    };
-
-    const handleEditMobile = () => {
-      setIsEditMobileModalOpen(true);
-    };
-
-    const handleInputChange = (e) => {
-      setUpdateData({ ...updateData, [e.target.name]: e.target.value });
-    };
-
-    const handleUpdate = async () => {
-      try {
-        const result = await updateOrder(order._id, updateData);
-        if (result.success) {
-          toast.success(result.message);
-          setIsEditMobileModalOpen(false);
-          await fetchData();
+        } else {
+          toast.error(result.message);
         }
       } catch (error) {
         console.log(error);
+        toast.error("Failed to update order status");
       }
     };
 
-    return (
-      <>
-        <tr className="bg-white border-b hover:bg-gray-50">
-          <td className="px-3 py-3 lg:px-4">
-            <div className="break-words w-[100px]">
-              <span className="text-sm font-medium">{order?.orderId}</span>
-            </div>
-          </td>
-          <td className="px-3 py-3 lg:px-4 whitespace-nowrap">
-            <div className="flex items-center">
-              <img
-                src={order?.productDetails?.images?.[0] || "N/A"}
-                alt={order?.productDetails?.name || "N/A"}
-                className="w-10 h-10 rounded-full"
-              />
-              <span
-                title={
-                  order?.productDetails?.hasVariant
-                    ? order?.productDetails?.name +
-                      " - " +
-                      order?.productDetails?.variantName
-                    : order?.productDetails?.name
-                }
-                className="text-sm font-medium cursor-pointer"
+    // Function to format products display
+    const formatProducts = (products) => {
+      return products?.map((product, index) => (
+        <div
+          key={product._id}
+          className={index !== 0 ? "mt-2 pt-2 border-t" : ""}
+        >
+          <div className="flex items-start">
+            <img
+              src={
+                product?.productId?.images?.[0]
+                  ? product?.productId?.images?.[0]
+                  : product?.variantId?.images?.[0]
+              }
+              alt={product?.productId?.name}
+              className="w-10 h-10 object-cover rounded mr-2"
+            />
+            <div>
+              <p
+                className="font-medium cursor-pointer"
+                title={product?.productId?.name}
               >
-                {order?.productDetails?.hasVariant
-                  ? (
-                      order?.productDetails?.name +
-                      " - " +
-                      order?.productDetails?.variantName
-                    ).slice(0, 20)
-                  : order?.productDetails?.name?.slice(0, 20)}
-                {order?.productDetails?.hasVariant && "..."}
-              </span>
+                {product?.productId?.name && product?.productId?.name.length > 30
+                  ? `${product?.productId?.name.substring(0, 30)}...`
+                  : product?.productId?.name}
+              </p>
+              <p className="text-xs text-gray-500">
+                Qty: {product?.quantity} × ₹{product?.price}
+              </p>
             </div>
-          </td>
-          <td className="px-3 py-3 lg:px-4 whitespace-nowrap">
-            {new Date(order.createdAt).toLocaleDateString("en-US", {
-              year: "numeric",
-              month: "short",
-              day: "numeric",
-            })}
-          </td>
-          <td className="px-3 py-3 lg:px-4" title="mobile">
-            {order?.mobile || "N/A"}
-          </td>
-          <td className="px-3 py-3 lg:px-4">
-            <div className="break-words w-[120px]">
-              {order.address ? order?.address : "N/A"}
-            </div>
-          </td>
-          <td className="px-3 py-3 lg:px-4">
-            <div className="break-words w-[100px]">
-              <span className="text-sm font-medium">
-                {order?.store?.name || "N/A"}
-              </span>
-            </div>
-          </td>
-          <td className="px-3 py-3 lg:px-4 text-center">
-            {order?.quantity || "N/A"}
-          </td>
-          <td className="px-3 py-3 lg:px-4">
-            <div className="font-medium text-gray-900">
-              ₹{order.totalAmount || 0}
-            </div>
-          </td>
-          <StatusDropdown
-            currentStatus={paymentStatus}
-            options={paymentOptions}
-            onStatusChange={handlePaymentStatusChange}
-            type="payment"
-          />
-          <StatusDropdown
-            currentStatus={orderStatus}
-            options={getAvailableOrderOptions()}
-            onStatusChange={handleOrderStatusChange}
-            type="order"
-          />
-          <td className="px-6 py-4">
-            <span
-              className="text-blue-500 cursor-pointer"
-              onClick={handleEditMobile}
-            >
-              <FaRegEdit />
-            </span>
-          </td>
-        </tr>
-        <>
-          <Modal
-            isOpen={isEditMobileModalOpen}
-            onClose={() => setIsEditMobileModalOpen(false)}
-          >
-            <div className="p-4">
-              <h2 className="text-lg font-medium mb-4 border-b text-black/90 border-gray-300 pb-3">
-                Update Contact Details
-              </h2>
-              <div className="mt-4">
-                <label className="block font-medium text-black/80">
-                  Mobile Number
-                </label>
-                <input
-                  type="text"
-                  name="mobile"
-                  placeholder="Enter mobile number"
-                  className="w-full p-2 border border-gray-300 rounded-md"
-                  value={updateData.mobile}
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="mt-4">
-                <label className="block font-medium text-black/80">
-                  Address
-                </label>
-                <textarea
-                  name="address"
-                  className="w-full p-2 min-h-36 border border-gray-300 rounded-md"
-                  value={updateData.address}
-                  placeholder="e.g., Northlux Official Outlet"
-                  onChange={handleInputChange}
-                />
-              </div>
-              <div className="flex gap-2 justify-end">
-                <button
-                  onClick={() => setIsEditMobileModalOpen(false)}
-                  className="bg-gray-500 text-white px-4 py-2 rounded-md"
+          </div>
+        </div>
+      ));
+    };
+
+    const getAvailableOrderOptions = () => {
+      if (orderStatus === "delivered") {
+        return ["delivered"]; // Only show current status if delivered
+      }
+      return orderOptions;
+    };
+
+    return (
+      <tr className="bg-white border-b hover:bg-gray-50">
+        <td className="px-6 py-4">
+          <div className="max-h-32 overflow-y-auto">
+            {formatProducts(order.products)}
+          </div>
+        </td>
+        <td className="px-6 py-4 whitespace-nowrap">
+          {formatDate(order.createdAt)}
+        </td>
+        <td className="px-6 py-4">{order?.user?.phonenumber}</td>
+        {/* <td className="px-6 py-4">{"1" || "N/A"}</td> */}
+        <td className="px-6 py-4">
+          <div className="text-sm space-y-1 max-w-xs">
+            {order?.deliveryAddress ? (
+              <>
+                <div
+                  className="font-medium text-gray-900 truncate"
+                  title={order.deliveryAddress.fullName}
                 >
-                  Cancel
-                </button>
-                <button
-                  onClick={handleUpdate}
-                  className="bg-blue-500 text-white px-4 py-2 rounded-md"
+                  {order.deliveryAddress.fullName && order.deliveryAddress.fullName.length > 30
+                    ? `${order.deliveryAddress.fullName.substring(0, 30)}...`
+                    : order.deliveryAddress.fullName}
+                </div>
+                <div
+                  className="text-gray-600 truncate"
+                  title={order.deliveryAddress.building}
                 >
-                  Update
-                </button>
+                  {order.deliveryAddress.building && order.deliveryAddress.building.length > 30
+                    ? `${order.deliveryAddress.building.substring(0, 30)}...`
+                    : order.deliveryAddress.building}
+                </div>
+                <div
+                  className="text-gray-600 truncate"
+                  title={order.deliveryAddress.street}
+                >
+                  {order.deliveryAddress.street && order.deliveryAddress.street.length > 30
+                    ? `${order.deliveryAddress.street.substring(0, 30)}...`
+                    : order.deliveryAddress.street}
+                </div>
+                {order.deliveryAddress.landmark && (
+                  <div
+                    className="text-gray-600 truncate"
+                    title={`Near: ${order.deliveryAddress.landmark}`}
+                  >
+                    Near: {order.deliveryAddress.landmark.length > 25
+                      ? `${order.deliveryAddress.landmark.substring(0, 25)}...`
+                      : order.deliveryAddress.landmark}
+                  </div>
+                )}
+                <div className="text-gray-600">
+                  {order.deliveryAddress.city}, {order.deliveryAddress.state}
+                </div>
+                <div className="font-medium text-gray-900">
+                  {order.deliveryAddress.pincode}
+                </div>
+              </>
+            ) : (
+              "N/A"
+            )}
+          </div>
+        </td>
+
+        <td className="px-6 py-4">
+          <div className="space-y-1">
+            {[
+              ...new Set(
+                order?.products?.map((p) => p?.productId?.category?.name)
+              ),
+            ].map((categoryName, index) => (
+              <div
+                key={index}
+                className="text-sm text-gray-600 truncate"
+                title={categoryName}
+              >
+                {categoryName && categoryName.length > 30
+                  ? `${categoryName.substring(0, 30)}...`
+                  : categoryName}
               </div>
-            </div>
-          </Modal>
-        </>
-      </>
+            ))}
+          </div>
+        </td>
+        <td className="px-6 py-4">
+          <div className="font-medium text-gray-900">
+            ₹{order.totalAmount?.toLocaleString() || 0}
+          </div>
+        </td>
+        <StatusDropdown
+          currentStatus={paymentStatus}
+          options={paymentOptions}
+          onStatusChange={handlePaymentStatusChange}
+          type="payment"
+        />
+        <StatusDropdown
+          currentStatus={orderStatus}
+          options={getAvailableOrderOptions()}
+          onStatusChange={handleOrderStatusChange}
+          type="order"
+        />
+      </tr>
     );
+  };
+
+  // Function to handle changes to delivery charge
+  const handleDeliveryChargeChange = (e) => {
+    setDeliveryCharge(e.target.value);
+  };
+
+  // Function to handle changes to minimum amount for free delivery
+  const handleMinAmountChange = (e) => {
+    setMinAmountForFreeDelivery(e.target.value);
+  };
+
+  const handlePopupOpen = () => {
+    setIsPopupOpen(true);
+  };
+
+  const handlePopupClose = () => {
+    setIsPopupOpen(false);
+  };
+
+  const handleEdit = async () => {
+    try {
+      const data = {
+        deliveryCharges: deliveryCharge,
+        minimumOrderAmount: minAmountForFreeDelivery,
+      };
+      const result = await updateShipmentCharges(data);
+      if (result.success) {
+        toast.success("Shipment charges updated successfully");
+        handlePopupClose();
+      }
+    } catch (error) {
+      console.log(error);
+      toast.error("Failed to update shipment charges");
+    }
+  };
+
+  // Pagination controls
+
+  const handlePageChange = (pageNumber) => {
+    setCurrentPage(pageNumber);
+  };
+
+  // Generate page numbers
+  const getPageNumbers = () => {
+    const pageNumbers = [];
+    const maxVisiblePages = 5;
+    let startPage = Math.max(1, currentPage - Math.floor(maxVisiblePages / 2));
+    let endPage = Math.min(totalPages, startPage + maxVisiblePages - 1);
+
+    if (endPage - startPage + 1 < maxVisiblePages) {
+      startPage = Math.max(1, endPage - maxVisiblePages + 1);
+    }
+
+    for (let i = startPage; i <= endPage; i++) {
+      pageNumbers.push(i);
+    }
+
+    return pageNumbers;
   };
 
   return (
     <div>
       <PageHeader content={"Orders"} />
-      <>
-        <div className="flex gap-[3rem]">
-          <div className="w-1/3 space-y-2">
-            <p className="font-medium text-sm">Sales Period</p>
-            <div className="w-full">
-              <DateRangePicker
-                dateRange={dateRange}
-                setDateRange={setDateRange}
-              />
+
+      {isLoading ? (
+        <LoadingSpinner color="primary" text="Loading orders..." fullScreen />
+      ) : (
+        <>
+          {isPopupOpen && (
+            <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+              <div className="bg-white rounded-lg p-6 w-96 shadow-xl">
+                <h3 className="text-lg font-semibold mb-4">
+                  Edit Shipment Charges
+                </h3>
+                <div className="flex flex-col gap-4">
+                  <div className="flex flex-col">
+                    <label className="font-medium text-sm">
+                      Delivery Charge
+                    </label>
+                    <input
+                      type="number"
+                      value={deliveryCharge}
+                      onChange={(e) => setDeliveryCharge(e.target.value)}
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    />
+                  </div>
+                  <div className="flex flex-col">
+                    <label className="font-medium text-sm">
+                      Min Amount for Free Delivery
+                    </label>
+                    <input
+                      type="number"
+                      value={minAmountForFreeDelivery}
+                      onChange={(e) =>
+                        setMinAmountForFreeDelivery(e.target.value)
+                      }
+                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5"
+                    />
+                  </div>
+                </div>
+                <div className="flex justify-end gap-4 mt-6">
+                  <button
+                    onClick={handlePopupClose}
+                    className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-md"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleEdit}
+                    className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                  >
+                    Edit
+                  </button>
+                </div>
+              </div>
             </div>
-            <div className="w-full flex flex-col gap-2">
-              <select
-                value={selectedStatus}
-                onChange={(e) => setSelectedStatus(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-              >
-                <option value="">Filter by Status</option>
-                {orderStatuses.map((status) => (
-                  <option key={status} value={status}>
-                    {status}
-                  </option>
-                ))}
-              </select>
-              <select
-                value={selectedStore}
-                onChange={(e) => setSelectedStore(e.target.value)}
-                className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                disabled={role === "store"}
-              >
-                <option value="">Filter by Store</option>
-                {stores?.map((store) => (
-                  <option key={store._id} value={store._id}>
-                    {store.store_name}
-                  </option>
-                ))}
-              </select>
+          )}
+
+          <div className="flex gap-[3rem]">
+            <div className="w-1/3 space-y-2">
+              <p className="font-medium text-sm">Sales Period</p>
+              <div className="w-full">
+                <DateRangePicker
+                  dateRange={dateRange}
+                  setDateRange={setDateRange}
+                />
+              </div>
+              <div className="w-full flex flex-col gap-2">
+                <select
+                  value={selectedCategory}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                >
+                  <option value="">Filter by Product Category</option>
+                  {formUtilites.categories?.map((category) => (
+                    <option key={category._id} value={category._id}>
+                      {category?.name}
+                    </option>
+                  ))}
+                </select>
+                <select
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value)}
+                  className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-80 p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                >
+                  <option value="">Filter by Status</option>
+                  {orderStatuses.map((status) => (
+                    <option key={status} value={status}>
+                      {status}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
+
+            <div className="flex gap-2 items-center flex-wrap">
+              {orderStats && (
+                <>
+                  <Ordercards
+                    data="Pending Orders"
+                    count={orderStats.statusCounts?.pending || 0}
+                    color="#FFA500"
+                  />
+                  <Ordercards
+                    data="Processing Orders"
+                    count={orderStats.statusCounts?.processed || 0}
+                    color="#3B82F6"
+                  />
+                  <Ordercards
+                    data="Shipped Orders"
+                    count={orderStats.statusCounts?.shipped || 0}
+                    color="#8B5CF6"
+                  />
+                  <Ordercards
+                    data="Delivered Orders"
+                    count={orderStats.statusCounts?.delivered || 0}
+                    color="#10B981"
+                  />
+                  <Ordercards
+                    data="On Refund Orders"
+                    count={orderStats.statusCounts?.onrefund || 0}
+                    color="#F59E0B"
+                  />
+                  <Ordercards
+                    data="Refunded Orders"
+                    count={orderStats.statusCounts?.refunded || 0}
+                    color="#6B7280"
+                  />
+                  <Ordercards
+                    data="Cancelled Orders"
+                    count={orderStats.statusCounts?.cancelled || 0}
+                    color="#EF4444"
+                  />
+                </>
+              )}
+            </div>
+          </div>
+          <div className="flex justify-end mt-4 mb-2 mr-4">
+            {(selectedCategory ||
+              selectedStatus ||
+              (dateRange[0] && dateRange[1])) && (
+                <button
+                  onClick={() => {
+                    setSelectedCategory("");
+                    setSelectedStatus("");
+                    setDateRange([null, null]);
+                  }}
+                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
+                >
+                  <TfiReload className="w-4 h-4" />
+                  <span>Reset Filters</span>
+                  <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                    {[
+                      selectedCategory && "Category",
+                      selectedStatus && "Status",
+                      dateRange[0] && dateRange[1] && "Date",
+                    ]
+                      .filter(Boolean)
+                      .join(", ")}
+                  </span>
+                </button>
+              )}
           </div>
 
-          <div className="flex gap-2 items-center flex-wrap">
-            {orderStats && (
-              <>
-                <Ordercards
-                  data="Pending Orders"
-                  count={orderStats.statusCounts?.pending || 0}
-                  color="#FFA500"
-                />
-                <Ordercards
-                  data="Confirmed Orders"
-                  count={orderStats.statusCounts?.confirmed || 0}
-                  color="#3B82F6"
-                />
-                <Ordercards
-                  data="Processing Orders"
-                  count={orderStats.statusCounts?.processed || 0}
-                  color="#3B82F6"
-                />
-                <Ordercards
-                  data="Shipped Orders"
-                  count={orderStats.statusCounts?.shipped || 0}
-                  color="#8B5CF6"
-                />
-                <Ordercards
-                  data="Delivered Orders"
-                  count={orderStats.statusCounts?.delivered || 0}
-                  color="#10B981"
-                />
-                <Ordercards
-                  data="On Refund Orders"
-                  count={orderStats.statusCounts?.onrefund || 0}
-                  color="#F59E0B"
-                />
-                <Ordercards
-                  data="Refunded Orders"
-                  count={orderStats.statusCounts?.refunded || 0}
-                  color="#6B7280"
-                />
-                <Ordercards
-                  data="Cancelled Orders"
-                  count={orderStats.statusCounts?.cancelled || 0}
-                  color="#EF4444"
-                />
-              </>
-            )}
-          </div>
-        </div>
-        <div className="flex justify-end mt-4 mb-2 mr-4">
-          {(selectedCategory ||
-            selectedStatus ||
-            (dateRange[0] && dateRange[1])) && (
+          {/* <div className="flex justify-between items-center mb-4">
+            <h1 className="text-xl font-bold">Orders</h1>
             <button
-              onClick={() => {
-                setSelectedCategory("");
-                setSelectedStatus("");
-                setDateRange([null, null]);
-              }}
-              className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              onClick={handlePopupOpen}
+              className="flex items-center gap-2 text-blue-600 hover:text-blue-800"
             >
-              <TfiReload className="w-4 h-4" />
-              <span>Reset Filters</span>
-              <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                {[
-                  selectedCategory && "Category",
-                  selectedStatus && "Status",
-                  dateRange[0] && dateRange[1] && "Date",
-                ]
-                  .filter(Boolean)
-                  .join(", ")}
-              </span>
+              <FiSettings className="w-5 h-5" />
+              <span>Handle Shipment Charges</span>
             </button>
-          )}
-        </div>
+          </div> */}
 
-        <div className="relative overflow-x-auto shadow-md sm:rounded-lg mt-5">
-          <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
-            <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
-              <tr>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="w-[100px]">Order ID</div>
-                </th>
-                <th>
-                  <div className="flex items-center">Product</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="flex items-center">Date Placed</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4" title="mobile">
-                  <div className="flex items-center">Phone Number</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4" title="address">
-                  <div className="flex items-center w-[120px]">Address</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="flex items-center w-[100px]">Store</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="flex items-center">Quantity</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="flex items-center">Total Amount</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="flex items-center">Payment Status</div>
-                </th>
-                <th scope="col" className="px-3 py-3 lg:px-4">
-                  <div className="flex items-center">Order Status</div>
-                </th>
-                <th scope="col" className=""></th>
-              </tr>
-            </thead>
-            {isLoading ? (
-              <tbody>
+          <div className="relative overflow-x-auto shadow-md sm:rounded-lg mt-5">
+            <table className="w-full text-sm text-left rtl:text-right text-gray-500 dark:text-gray-400">
+              <thead className="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                 <tr>
-                  <td
-                    colSpan="10"
-                    className="px-6 py-12 text-center text-gray-500 bg-gray-50"
-                  >
-                    <LoadingSpinner color="primary" text="Loading orders..." />
-                  </td>
+                  <th scope="col" className="px-6 py-3">
+                    Order Items
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Date Placed</div>
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Phone Number</div>
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Address</div>
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Categories</div>
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Total Amount</div>
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Payment Status</div>
+                  </th>
+                  <th scope="col" className="px-6 py-3">
+                    <div className="flex items-center">Order Status</div>
+                  </th>
                 </tr>
-              </tbody>
-            ) : orders && orders.length > 0 ? (
-              <tbody>
-                {orders.map((order) => (
-                  <TableRow key={order._id} order={order} />
-                ))}
-              </tbody>
-            ) : (
-              <tbody>
-                <tr>
-                  <td
-                    colSpan="9"
-                    className="px-6 py-12 text-center text-gray-500 bg-gray-50"
-                  >
-                    <div className="flex flex-col items-center justify-center">
-                      <svg
-                        className="w-12 h-12 mb-4 text-gray-400"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth="2"
-                          d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
-                        />
-                      </svg>
-                      <p className="text-lg font-medium">No orders found</p>
-                      {dateRange[0] && dateRange[1] && (
-                        <p className="mt-1 text-sm text-gray-400">
-                          Try selecting a different date range
-                        </p>
-                      )}
-                    </div>
-                  </td>
-                </tr>
-              </tbody>
-            )}
-          </table>
+              </thead>
+              {orders && orders.length > 0 ? (
+                <tbody>
+                  {orders.map((order) => (
+                    <TableRow key={order._id} order={order} />
+                  ))}
+                </tbody>
+              ) : (
+                <tbody>
+                  <tr>
+                    <td
+                      colSpan="8"
+                      className="px-6 py-12 text-center text-gray-500 bg-gray-50"
+                    >
+                      <div className="flex flex-col items-center justify-center">
+                        <svg
+                          className="w-12 h-12 mb-4 text-gray-400"
+                          fill="none"
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path
+                            strokeLinecap="round"
+                            strokeLinejoin="round"
+                            strokeWidth="2"
+                            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
+                          />
+                        </svg>
+                        <p className="text-lg font-medium">No orders found</p>
+                        {dateRange[0] && dateRange[1] && (
+                          <p className="mt-1 text-sm text-gray-400">
+                            Try selecting a different date range
+                          </p>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                </tbody>
+              )}
+            </table>
+          </div>
 
-          {orders && orders.length > 0 && (
-            <div className="py-4 px-3 flex justify-end border-t border-gray-200">
-              <Pagination
-                currentPage={currentPage}
-                totalPages={totalPages}
-                onPageChange={handlePageChange}
-              />
-            </div>
-          )}
-        </div>
-      </>
+          <div className="flex justify-center mt-4">
+            <button
+              onClick={() => handlePageChange(currentPage - 1)}
+              disabled={currentPage === 1}
+              className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Previous
+            </button>
+
+            {getPageNumbers().map((pageNumber) => (
+              <button
+                key={pageNumber}
+                onClick={() => handlePageChange(pageNumber)}
+                className={`px-3 py-1 rounded ${currentPage === pageNumber
+                  ? "bg-blue-500 text-white hover:bg-blue-600"
+                  : "border hover:bg-gray-50"
+                  }`}
+              >
+                {pageNumber}
+              </button>
+            ))}
+
+            <button
+              onClick={() => handlePageChange(currentPage + 1)}
+              disabled={currentPage === totalPages}
+              className="px-3 py-1 border rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              Next
+            </button>
+          </div>
+        </>
+      )}
     </div>
   );
 }
