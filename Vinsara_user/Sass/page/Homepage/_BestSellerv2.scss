@@ -6,7 +6,7 @@
     padding: var.$default-padding;
     background: #fff;
     // margin-block: 0.5rem;
-    margin-bottom: 6rem;
+    margin-bottom: 4rem;
     @media screen and (max-width: 768px) {
       padding: 0 1rem;
     }
@@ -17,11 +17,11 @@
     display: flex;
     justify-content: space-between;
     align-items: center;
-    margin-bottom: 1.5rem;
+    margin-bottom: 2rem;
 
     h3 {
       font: {
-        size: 1.5rem;
+        size: 2rem;
         weight: 600;
       }
       color: #333;

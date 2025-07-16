@@ -476,7 +476,7 @@ ul {
   position: relative;
   padding: 20px 20px 0px 20px;
   overflow: hidden;
-  margin-bottom: 5rem;
+  margin-bottom: 4rem;
 }
 @media (max-width: 1024px) and (min-width: 600px) {
   .carousel-container {
@@ -649,7 +649,7 @@ ul {
   width: 80%;
   margin: 0 auto;
   border-radius: 4px;
-  margin-bottom: 6rem;
+  margin-bottom: 4rem;
 }
 @media only screen and (min-width: 576px) and (max-width: 767.98px) {
   .carousel-container-banner {
@@ -1270,7 +1270,7 @@ ul {
   padding: 0 10%;
   margin: 0 auto;
   max-height: 30rem;
-  margin-bottom: 6rem;
+  margin-bottom: 4rem;
 }
 @media screen and (max-width: 1024px) and (min-width: 768px) {
   .offer-container {
@@ -1512,7 +1512,7 @@ ul {
 .trending-container {
   padding: 0 10%;
   background: #fff;
-  margin: 0 0 6rem 0;
+  margin: 0 0 4rem 0;
 }
 @media screen and (max-width: 1024px) and (min-width: 768px) {
   .trending-container {
@@ -1523,6 +1523,7 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 2rem;
 }
 .trending-container .trending-header .trending-content h2 {
   font-size: 2rem;
@@ -1587,7 +1588,7 @@ ul {
   display: flex;
   gap: 1.5rem;
   overflow-x: auto;
-  padding: 0.5rem 0 0 0;
+  padding: 0 0 0 0;
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
@@ -1796,7 +1797,7 @@ ul {
 .bestseller_container {
   padding: 0 10%;
   background: #fff;
-  margin-bottom: 6rem;
+  margin-bottom: 4rem;
 }
 @media screen and (max-width: 768px) {
   .bestseller_container {
@@ -1807,10 +1808,10 @@ ul {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1.5rem;
+  margin-bottom: 2rem;
 }
 .bestseller_header h3 {
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 600;
   color: #333;
 }
@@ -2913,7 +2914,7 @@ ul {
 .product-page .product-section .product-grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 0.5rem;
+  gap: 1rem;
 }
 @media (max-width: 1400px) {
   .product-page .product-section .product-grid {
@@ -5802,7 +5803,7 @@ body.modal-open {
   padding: 0 10%;
   margin: 0 auto;
   text-align: center;
-  margin-bottom: 6rem;
+  margin-bottom: 4rem;
 }
 .shop-by h2 {
   font-size: 28px;

@@ -46,7 +46,7 @@ function BestSellerv2() {
       <div className="bestseller_container">
         {/* ─── Header ────────────────────────────────────────────────────── */}
         <header className="bestseller_header">
-          <h3>Best Sellers</h3> 
+          <h3>Best <span style={{color: '#ddc062'}}>Sellers</span></h3> 
           <p className="view-all desktop-view-all" onClick={handleViewAll}>
           View All <ViewAllIcon />
         </p>
