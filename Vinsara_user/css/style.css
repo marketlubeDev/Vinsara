@@ -1512,7 +1512,7 @@ ul {
 .trending-container {
   padding: 0 10%;
   background: #fff;
-  margin: 0 0 4rem 0;
+  margin: 0 0 6rem 0;
 }
 @media screen and (max-width: 1024px) and (min-width: 768px) {
   .trending-container {
@@ -1591,7 +1591,6 @@ ul {
   -webkit-overflow-scrolling: touch;
   scroll-behavior: smooth;
   scroll-snap-type: x mandatory;
-  margin-bottom: 1rem;
   scrollbar-width: none;
   -ms-overflow-style: none;
 }

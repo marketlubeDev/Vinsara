@@ -4,7 +4,7 @@
 .trending-container {
   padding: var.$default-padding;
   background: #fff;
-  margin: 0 0 4rem 0;
+  margin: 0 0 6rem 0;
 
   @media screen and (max-width: 1024px) and (min-width: 768px) {
     padding: 0 5%;
@@ -95,7 +95,7 @@
     -webkit-overflow-scrolling: touch;
     scroll-behavior: smooth;
     scroll-snap-type: x mandatory;
-    margin-bottom: 1rem;
+    // margin-bottom: 1rem;
 
     &::-webkit-scrollbar {
       display: none;
