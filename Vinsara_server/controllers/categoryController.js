@@ -247,7 +247,7 @@ const deleteCategory = catchAsync(async (req, res, next) => {
   }
 
   // Check if category has products
-  const productCount = await Product.countDocuments({ category: categoryId, isDelete: false });
+  const productCount = await Product.countDocuments({ category: categoryId, isDeleted: false });
   if (productCount > 0) {
     return next(new AppError("Category has products, cannot delete", 400));
   }
