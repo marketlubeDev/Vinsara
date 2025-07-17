@@ -25,6 +25,10 @@
         weight: 600;
       }
       color: #333;
+
+      @media screen and (max-width: 576px) {
+        font-size: 24px;
+      }
     }
 
     .desktop-view-all {

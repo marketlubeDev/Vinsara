@@ -209,9 +209,24 @@
       flex-wrap: wrap;
       justify-content: center;
 
-      @media (max-width: 768px) {
+      @media (max-width: 1024px) {
+        gap: 1.2rem;
+        flex-direction: row;
+      }
+
+      @media (max-width: 820px) {
         gap: 1rem;
-        flex-direction: column;
+        flex-direction: row;
+      }
+
+      @media (max-width: 768px) {
+        gap: 0.8rem;
+        flex-direction: row;
+      }
+
+      @media (max-width: 480px) {
+        gap: 0.75rem;
+        flex-direction: row;
       }
 
       .copyright {
@@ -219,12 +234,36 @@
         opacity: 0.8;
         font-size: 0.875rem;
         white-space: nowrap;
+
+        @media (max-width: 1024px) {
+          font-size: 0.8rem;
+        }
+
+        @media (max-width: 820px) {
+          font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+          font-size: 0.7rem;
+        }
+
+        @media (max-width: 480px) {
+          font-size: 0.65rem;
+        }
       }
 
       .separator {
         width: 1px;
         height: 1rem;
         background: #ffffff33;
+
+        @media (max-width: 820px) {
+          height: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+          height: 0.8rem;
+        }
       }
 
       .social-link {
@@ -232,6 +271,22 @@
         opacity: 0.8;
         font-size: 1.25rem;
         transition: opacity 0.2s ease;
+
+        @media (max-width: 1024px) {
+          font-size: 1.1rem;
+        }
+
+        @media (max-width: 820px) {
+          font-size: 1rem;
+        }
+
+        @media (max-width: 768px) {
+          font-size: 0.9rem;
+        }
+
+        @media (max-width: 480px) {
+          font-size: 0.85rem;
+        }
 
         &:hover {
           opacity: 1;
@@ -244,6 +299,22 @@
         opacity: 0.8;
         font-size: 0.875rem;
         white-space: nowrap;
+
+        @media (max-width: 1024px) {
+          font-size: 0.8rem;
+        }
+
+        @media (max-width: 820px) {
+          font-size: 0.75rem;
+        }
+
+        @media (max-width: 768px) {
+          font-size: 0.7rem;
+        }
+
+        @media (max-width: 480px) {
+          font-size: 0.65rem;
+        }
       }
 
       .brand-highlight {
@@ -323,17 +394,21 @@
       width: 100%;
 
       .footer-bottom-content {
-        flex-direction: column;
-        gap: 0.75rem;
+        flex-direction: row;
+        gap: 0.5rem;
         text-align: center;
 
         .copyright,
         .powered-by {
-          font-size: 0.8rem;
+          font-size: 0.65rem;
         }
 
         .separator {
-          display: none;
+          height: 0.7rem;
+        }
+
+        .social-link {
+          font-size: 0.9rem;
         }
       }
     }
