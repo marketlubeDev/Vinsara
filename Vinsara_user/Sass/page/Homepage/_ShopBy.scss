@@ -8,7 +8,8 @@
   margin-bottom: 4rem;
 
   h2 {
-    font-size: 28px;
+    font-size: 2rem;
+    font-weight: 600;
     margin-bottom: 2rem;
     color: #000;
     // margin-top: 1.5rem;
@@ -162,7 +163,7 @@
           z-index: 1;
 
           @media screen and (max-width: 768px) {
-            font-size: 12px;
+            font-size: 35px;
           }
         }
       }
