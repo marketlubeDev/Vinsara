@@ -11,7 +11,7 @@ const AppError = require("../utilities/errorHandlings/appError");
 const catchAsync = require("../utilities/errorHandlings/catchAsync");
 const mongoose = require("mongoose");
 const formatProductResponse = require("../helpers/product/formatProducts");
-const categoryModel = require("../model/categoryModel");
+const RatingModal = require("../model/ratingModel");
 
 const addProduct = catchAsync(async (req, res, next) => {
   const {
@@ -62,7 +62,7 @@ const addProduct = catchAsync(async (req, res, next) => {
   }
 
   // Upload images for each variant
-  for (const [variantIndex, files] of Object.entries(variantFiles)) { 
+  for (const [variantIndex, files] of Object.entries(variantFiles)) {
     const filteredFiles = files.filter((file) => file);
     if (filteredFiles.length > 0) {
       try {
@@ -245,12 +245,12 @@ const listProducts = catchAsync(async (req, res, next) => {
               $cond: {
                 if: { $gt: [{ $size: "$variantsData" }, 0] },
                 then: [{ $first: "$variantsData" }],
-                else: []
-              }
-            }
-          }
-        }
-      }
+                else: [],
+              },
+            },
+          },
+        },
+      },
     },
     {
       $addFields: {
@@ -488,7 +488,6 @@ const getProductDetails = catchAsync(async (req, res, next) => {
   // Get product details with populated fields
   const productDetails = await Product.findById(productId)
     .populate("category")
-    .populate("subcategory")
     .populate("createdBy", "username email role")
     .populate("variants")
     .populate("label");
@@ -498,10 +497,51 @@ const getProductDetails = catchAsync(async (req, res, next) => {
   }
 
   // Get rating distribution
+  const ratingDistribution = await RatingModal.aggregate([
+    { $match: { productId: new mongoose.Types.ObjectId(productDetails._id) } },
+    {
+      $group: {
+        _id: "$rating",
+        count: { $sum: 1 },
+      },
+    },
+    { $sort: { _id: -1 } },
+  ]);
 
   // Get all ratings with user details
+  const ratings = await RatingModal.find({ productId: productDetails._id })
+    .populate("userId", "username email profileImage") // Add the fields you want from the user
+    .sort({ createdAt: -1 }); // Sort by newest first
+
+  // Convert rating distribution to an object with all ratings (1-5)
+  const ratingCounts = {
+    5: 0,
+    4: 0,
+    3: 0,
+    2: 0,
+    1: 0,
+  };
+
+  ratingDistribution.forEach((rating) => {
+    ratingCounts[rating._id] = rating.count;
+  });
+
+  // Calculate rating statistics
+  const totalRatings = ratings.length;
+  const averageRating =
+    totalRatings > 0
+      ? ratings.reduce((sum, rating) => sum + rating.rating, 0) / totalRatings
+      : 0;
 
   const updated = productDetails.toObject();
+  updated.ratingDistribution = ratingCounts;
+  updated.ratings = ratings;
+  updated.ratingStats = {
+    totalRatings,
+    averageRating: Number(averageRating.toFixed(1)),
+    ratingCounts,
+  };
+
   res.status(200).json(updated);
 });
 

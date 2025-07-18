@@ -323,13 +323,9 @@ function ProductDetailsContent() {
             {/* Stock Status */}
             <div className="stock-status">
               {(selectedVariant ? selectedVariant?.stock : product?.stock) <=
-                0 &&
-                selectedVariant?.stockStatus === "outofstock" && (
-                  <span className="out-of-stock">⚠️ Out of Stock</span>
-                )}
-              {selectedVariant?.stockStatus === "outofstock" && (
+                0 || selectedVariant?.stockStatus === "outofstock" ? (
                 <span className="out-of-stock">⚠️ Out of Stock</span>
-              )}
+              ) : null}
             </div>
 
             <div className="buy-buttons">
