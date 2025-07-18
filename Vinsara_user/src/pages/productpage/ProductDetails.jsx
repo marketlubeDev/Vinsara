@@ -577,7 +577,9 @@ function ProductDetailsContent() {
             onClick={() => handleAddToCart("cart")}
             disabled={
               loadingAction !== null ||
-              (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+              (selectedVariant ? selectedVariant?.stock : product?.stock) <=
+                0 ||
+              selectedVariant?.stockStatus === "outofstock"
             }
           >
             {loadingAction === "cart" ? (
@@ -591,7 +593,9 @@ function ProductDetailsContent() {
             onClick={() => handleAddToCart("buy")}
             disabled={
               loadingAction !== null ||
-              (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+              (selectedVariant ? selectedVariant?.stock : product?.stock) <=
+                0 ||
+              selectedVariant?.stockStatus === "outofstock"
             }
           >
             {loadingAction === "buy" ? <ButtonLoadingSpinner /> : "Buy Now"}

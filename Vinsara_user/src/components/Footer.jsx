@@ -9,9 +9,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useSubmitFeedback } from "../hooks/queries/feedback";
 
-
 function Footer() {
-
   const navigate = useNavigate();
   const [categories, setCategories] = useState([]);
   const { data: categoriesData } = useCategories();
@@ -20,7 +18,7 @@ function Footer() {
   const [feedbackForm, setFeedbackForm] = useState({
     name: "",
     phone: "",
-    message: ""
+    message: "",
   });
 
   const validateEmail = (email) => {
@@ -31,27 +29,28 @@ function Footer() {
   const validatePhone = (phone) => {
     // Allows formats: +91XXXXXXXXXX or XXXXXXXXXX (10 digits)
     const phoneRegex = /^(?:\+91)?[6-9]\d{9}$/;
-    return phoneRegex.test(phone.replace(/\s+/g, ''));
+    return phoneRegex.test(phone.replace(/\s+/g, ""));
   };
 
   const validateContact = (contact) => {
     // Check if it's an email or phone number
     if (validateEmail(contact)) {
-      return { isValid: true, type: 'email' };
+      return { isValid: true, type: "email" };
     }
     if (validatePhone(contact)) {
-      return { isValid: true, type: 'phone' };
+      return { isValid: true, type: "phone" };
     }
-    return { isValid: false, type: 'invalid' };
+    return { isValid: false, type: "invalid" };
   };
 
   const validateMessage = (message) => {
     const trimmedMessage = message.trim();
-    if (trimmedMessage.length < 10) {
-      return { isValid: false, message: "Message must be at least 10 characters long" };
-    }
+
     if (trimmedMessage.length > 500) {
-      return { isValid: false, message: "Message cannot exceed 500 characters" };
+      return {
+        isValid: false,
+        message: "Message cannot exceed 500 characters",
+      };
     }
     return { isValid: true, message: trimmedMessage };
   };
@@ -63,17 +62,18 @@ function Footer() {
     const trimmedForm = {
       name: feedbackForm.name.trim(),
       phone: feedbackForm.phone.trim(),
-      message: feedbackForm.message.trim()
+      message: feedbackForm.message.trim(),
     };
 
     // Check for empty fields
-    if (Object.values(trimmedForm).some(value => value === "")) {
+    if (Object.values(trimmedForm).some((value) => value === "")) {
       toast.error("Please fill all the fields");
       return;
     }
 
     // Validate contact (email or phone)
     const contactValidation = validateContact(trimmedForm.phone);
+    console.log(contactValidation, "contactValidation>>>");
     if (!contactValidation.isValid) {
       toast.error("Please enter a valid email address or phone number");
       return;
@@ -89,11 +89,11 @@ function Footer() {
     // Prepare data for submission
     const submitData = {
       name: trimmedForm.name,
-      message: messageValidation.message
+      message: messageValidation.message,
     };
 
     // Add email or phone based on validation
-    if (contactValidation.type === 'email') {
+    if (contactValidation.type === "email") {
       submitData.email = trimmedForm.phone;
     } else {
       submitData.phone = trimmedForm.phone;
@@ -107,27 +107,27 @@ function Footer() {
         setFeedbackForm({
           name: "",
           phone: "",
-          message: ""
+          message: "",
         });
       },
       onError: () => {
         toast.error("Failed to submit feedback");
-      }
+      },
     });
   };
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setFeedbackForm(prev => ({
+    setFeedbackForm((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
   useEffect(() => {
     setCategories(categoriesData?.envelop?.data);
   }, [categoriesData]);
-  
+
   return (
     <footer className="footer">
       {/* Feedback Section */}
@@ -137,29 +137,31 @@ function Footer() {
             <h2>We Value Your Feedback</h2>
             <h3>Help Us Serve You Better!</h3>
           </div>
-          <form className="newsletter-content-form" onSubmit={handleFeedbackSubmit}>
+          <form
+            className="newsletter-content-form"
+            onSubmit={handleFeedbackSubmit}
+          >
             <div className="form-row">
-              <input 
-                type="text" 
-                placeholder="Full Name" 
+              <input
+                type="text"
+                placeholder="Full Name"
                 name="name"
                 value={feedbackForm.name}
                 onChange={handleInputChange}
                 required
                 maxLength={50}
               />
-              <input 
-                type="text" 
-                placeholder="Email or Phone number" 
+              <input
+                type="text"
+                placeholder="Email or Phone number"
                 name="phone"
                 value={feedbackForm.phone}
                 onChange={handleInputChange}
                 required
-                maxLength={13}
               />
             </div>
-            <textarea 
-              placeholder="Tell us about your experience" 
+            <textarea
+              placeholder="Tell us about your experience"
               name="message"
               value={feedbackForm.message}
               onChange={handleInputChange}
@@ -175,10 +177,10 @@ function Footer() {
 
       {/* Main Footer */}
       <div className="footer-main">
-          {/* Logo Section */}
-            <div className="footer-logo">
-              <img src={VinsaraLogo} alt="Vinsara Logo" />
-            </div>
+        {/* Logo Section */}
+        <div className="footer-logo">
+          <img src={VinsaraLogo} alt="Vinsara Logo" />
+        </div>
 
         {/* Navigation Links */}
         <div className="footer-navigation">
@@ -195,7 +197,10 @@ function Footer() {
 
         {/* Address Section */}
         <div className="footer-address">
-          <p>Vinsara Ventures Llp 38/1553/A, Kannancheri (Po) Kallai, Kozhikode Kerala, 673003</p>
+          <p>
+            Vinsara Ventures Llp 38/1553/A, Kannancheri (Po) Kallai, Kozhikode
+            Kerala, 673003
+          </p>
           <p>7012617749</p>
         </div>
       </div>
@@ -204,7 +209,8 @@ function Footer() {
       <div className="footer-bottom">
         <div className="footer-bottom-content">
           <span className="copyright">
-            © 2025 <span className="brand-highlight">Vinsara</span>. All rights reserved
+            © 2025 <span className="brand-highlight">Vinsara</span>. All rights
+            reserved
           </span>
           <div className="separator"></div>
           <a href="#" className="social-link">
