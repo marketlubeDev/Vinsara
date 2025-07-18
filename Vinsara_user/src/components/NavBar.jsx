@@ -17,8 +17,6 @@ export const NavBar = () => {
   const navBarRef = useRef(null);
   const [openCategoryId, setOpenCategoryId] = useState(null);
 
-
-
   const {
     data: categoriesData,
     isLoading: categoriesLoading,
@@ -86,8 +84,6 @@ export const NavBar = () => {
     }
   };
 
-
-
   const handleDropdownLeave = () => {
     if (window.innerWidth >= 768) {
       setDropdownOpen(false);
@@ -117,10 +113,10 @@ export const NavBar = () => {
   };
 
   const handleClickSubCategory = (subCategory) => {
+    const category = categories.find(
+      (category) => category._id === subCategory.category
+    );
 
-
-    const category = categories.find(category => category._id === subCategory.category);
-    
     setDropdownOpen(false);
 
     if (dropdownContent?.parent === "subcategories") {
@@ -185,14 +181,18 @@ export const NavBar = () => {
             <li
               key={category._id}
               onMouseEnter={() => {
-                handleCategoryHover(category.subcategories, "subcategories", category._id);
+                handleCategoryHover(
+                  category.subcategories,
+                  "subcategories",
+                  category._id
+                );
                 setCurrentDropDownParent({
                   id: category._id,
                   name: category.name,
                 });
               }}
               onClick={() =>
-                window.innerWidth >= 768
+                window.innerWidth > 1024
                   ? handleCategoryClick(category)
                   : handleCategoryClickOnMobile(
                       category.subcategories,
@@ -205,7 +205,10 @@ export const NavBar = () => {
               <span
                 className="arrow-icon"
                 style={{
-                  transform: openCategoryId === category._id ? "rotate(225deg)" : "rotate(45deg)",
+                  transform:
+                    openCategoryId === category._id
+                      ? "rotate(225deg)"
+                      : "rotate(45deg)",
                   transition: "transform 0.3s ease",
                 }}
               ></span>

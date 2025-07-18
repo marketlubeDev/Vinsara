@@ -62,8 +62,8 @@ const addProduct = catchAsync(async (req, res, next) => {
   }
 
   // Upload images for each variant
-  for (const [variantIndex, files] of Object.entries(variantFiles)) {
-    const filteredFiles = files.filter((file) => file); // Remove any undefined entries
+  for (const [variantIndex, files] of Object.entries(variantFiles)) { 
+    const filteredFiles = files.filter((file) => file);
     if (filteredFiles.length > 0) {
       try {
         const imageUrls = await uploadMultipleToS3(filteredFiles, {
@@ -219,20 +219,55 @@ const listProducts = catchAsync(async (req, res, next) => {
     },
     {
       $addFields: {
+        // Filter out out-of-stock variants first
+        availableVariants: {
+          $filter: {
+            input: "$variantsData",
+            as: "variant",
+            cond: {
+              $and: [
+                { $ne: ["$$variant.stockStatus", "outofstock"] },
+                { $gt: ["$$variant.stock", 0] },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
+        // If no available variants, use the first variant regardless of stock status
+        finalVariants: {
+          $cond: {
+            if: { $gt: [{ $size: "$availableVariants" }, 0] },
+            then: "$availableVariants",
+            else: {
+              $cond: {
+                if: { $gt: [{ $size: "$variantsData" }, 0] },
+                then: [{ $first: "$variantsData" }],
+                else: []
+              }
+            }
+          }
+        }
+      }
+    },
+    {
+      $addFields: {
         effectivePrice: {
           $cond: {
             if: { $eq: [sort, "price-high"] },
             then: {
               $cond: {
-                if: { $gt: [{ $size: "$variantsData" }, 0] },
-                then: { $max: "$variantsData.offerPrice" },
+                if: { $gt: [{ $size: "$finalVariants" }, 0] },
+                then: { $max: "$finalVariants.offerPrice" },
                 else: "$offerPrice",
               },
             },
             else: {
               $cond: {
-                if: { $gt: [{ $size: "$variantsData" }, 0] },
-                then: { $min: "$variantsData.offerPrice" },
+                if: { $gt: [{ $size: "$finalVariants" }, 0] },
+                then: { $min: "$finalVariants.offerPrice" },
                 else: "$offerPrice",
               },
             },
@@ -240,19 +275,19 @@ const listProducts = catchAsync(async (req, res, next) => {
         },
         sortedVariants: {
           $cond: {
-            if: { $gt: [{ $size: "$variantsData" }, 0] },
+            if: { $gt: [{ $size: "$finalVariants" }, 0] },
             then: {
               $cond: {
                 if: { $eq: [sort, "price-high"] },
                 then: {
                   $sortArray: {
-                    input: "$variantsData",
+                    input: "$finalVariants",
                     sortBy: { offerPrice: -1 },
                   },
                 },
                 else: {
                   $sortArray: {
-                    input: "$variantsData",
+                    input: "$finalVariants",
                     sortBy: { offerPrice: 1 },
                   },
                 },
@@ -265,7 +300,7 @@ const listProducts = catchAsync(async (req, res, next) => {
     },
     {
       $addFields: {
-        // Select the first variant after sorting
+        // Select the first available variant after sorting
         selectedVariant: {
           $cond: {
             if: { $gt: [{ $size: "$sortedVariants" }, 0] },
@@ -373,10 +408,27 @@ const listProducts = catchAsync(async (req, res, next) => {
     },
     {
       $addFields: {
+        // Filter out out-of-stock variants first
+        availableVariants: {
+          $filter: {
+            input: "$variantsData",
+            as: "variant",
+            cond: {
+              $and: [
+                { $ne: ["$$variant.stockStatus", "outofstock"] },
+                { $gt: ["$$variant.stock", 0] },
+              ],
+            },
+          },
+        },
+      },
+    },
+    {
+      $addFields: {
         effectivePrice: {
           $cond: {
-            if: { $gt: [{ $size: "$variantsData" }, 0] },
-            then: { $min: "$variantsData.price" },
+            if: { $gt: [{ $size: "$availableVariants" }, 0] },
+            then: { $min: "$availableVariants.price" },
             else: "$price",
           },
         },

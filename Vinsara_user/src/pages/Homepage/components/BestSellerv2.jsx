@@ -110,9 +110,11 @@ function BestSellerv2() {
                       <span className="original-price">
                         {formatPrice(p.price)}
                       </span>
-                      <span className="discount-tag">
-                        {discount(p.offerPrice, p.price)}% off
-                      </span>
+                      {discount(p.offerPrice, p.price) > 0 && (
+                        <span className="discount-tag">
+                          {discount(p.offerPrice, p.price)}% off
+                        </span>
+                      )}
                     </div>
 
                     <button

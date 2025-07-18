@@ -42,9 +42,7 @@ function ProductDetailsContent() {
     error: errorProducts,
   } = useProducts();
 
-  console.log(response, "response>>>")
-
-
+  console.log(response, "response>>>");
 
   const { mutate: addToCart, isLoading: isAddingToCart } = useAddToCart();
 
@@ -156,7 +154,6 @@ function ProductDetailsContent() {
     window.open(whatsappUrl, "_blank");
   };
 
-
   return (
     <div className="product-details">
       <div className="breadcrumb">
@@ -181,25 +178,25 @@ function ProductDetailsContent() {
           <div className="thumbnail-images">
             {!selectedVariant
               ? product?.images?.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`${product?.name} ${index + 1}`}
-                  onClick={() => setSelectedImage(image)}
-                  className={selectedImage === image ? "selected" : ""}
-                  style={{ cursor: "pointer" }}
-                />
-              ))
+                  <img
+                    key={index}
+                    src={image}
+                    alt={`${product?.name} ${index + 1}`}
+                    onClick={() => setSelectedImage(image)}
+                    className={selectedImage === image ? "selected" : ""}
+                    style={{ cursor: "pointer" }}
+                  />
+                ))
               : selectedVariant?.images.map((image, index) => (
-                <img
-                  key={index}
-                  src={image}
-                  alt={`${product?.name} ${index + 1}`}
-                  onClick={() => setSelectedImage(image)}
-                  className={selectedImage === image ? "selected" : ""}
-                  style={{ cursor: "pointer" }}
-                />
-              ))}
+                  <img
+                    key={index}
+                    src={image}
+                    alt={`${product?.name} ${index + 1}`}
+                    onClick={() => setSelectedImage(image)}
+                    className={selectedImage === image ? "selected" : ""}
+                    style={{ cursor: "pointer" }}
+                  />
+                ))}
           </div>
         </div>
 
@@ -228,7 +225,9 @@ function ProductDetailsContent() {
               {"☆".repeat(5 - Math.floor(product?.averageRating))}
             </div>
             <span className="rating">{product?.averageRating}</span>
-            <span className="reviews">({product?.totalRatings || 0} reviews)</span>
+            <span className="reviews">
+              ({product?.totalRatings || 0} reviews)
+            </span>
           </div>
 
           <div className="section description">
@@ -242,13 +241,13 @@ function ProductDetailsContent() {
               {(selectedVariant?.attributes?.description?.split(" ").length >
                 100 ||
                 product?.description?.split(" ").length > 100) && (
-                  <button
-                    className="read-more"
-                    onClick={() => setShowFullDescription(!showFullDescription)}
-                  >
-                    {showFullDescription ? "Show less" : "Read more"}
-                  </button>
-                )}
+                <button
+                  className="read-more"
+                  onClick={() => setShowFullDescription(!showFullDescription)}
+                >
+                  {showFullDescription ? "Show less" : "Read more"}
+                </button>
+              )}
             </p>
           </div>
 
@@ -268,8 +267,9 @@ function ProductDetailsContent() {
                 {product?.variants.map((variant) => (
                   <button
                     key={variant._id}
-                    className={`type-btn ${selectedVariant?._id === variant._id ? "active" : ""
-                      }`}
+                    className={`type-btn ${
+                      selectedVariant?._id === variant._id ? "active" : ""
+                    }`}
                     onClick={() => {
                       setSelectedVariant(variant);
                       setSelectedImage(variant.images[0]);
@@ -302,20 +302,32 @@ function ProductDetailsContent() {
               <span className="original">
                 ₹{selectedVariant ? selectedVariant?.price : product?.price}
               </span>
-              <span className="discount">
-                {CalculateDiscount(
-                  selectedVariant ? selectedVariant?.price : product?.price,
-                  selectedVariant
-                    ? selectedVariant?.offerPrice
-                    : product?.offerPrice
-                )}
-                % off
-              </span>
+              {CalculateDiscount(
+                selectedVariant ? selectedVariant?.price : product?.price,
+                selectedVariant
+                  ? selectedVariant?.offerPrice
+                  : product?.offerPrice
+              ) > 0 && (
+                <span className="discount">
+                  {CalculateDiscount(
+                    selectedVariant ? selectedVariant?.price : product?.price,
+                    selectedVariant
+                      ? selectedVariant?.offerPrice
+                      : product?.offerPrice
+                  )}
+                  % off
+                </span>
+              )}
             </div>
 
             {/* Stock Status */}
             <div className="stock-status">
-              {(selectedVariant ? selectedVariant?.stock : product?.stock) <= 0 && (
+              {(selectedVariant ? selectedVariant?.stock : product?.stock) <=
+                0 &&
+                selectedVariant?.stockStatus === "outofstock" && (
+                  <span className="out-of-stock">⚠️ Out of Stock</span>
+                )}
+              {selectedVariant?.stockStatus === "outofstock" && (
                 <span className="out-of-stock">⚠️ Out of Stock</span>
               )}
             </div>
@@ -326,7 +338,9 @@ function ProductDetailsContent() {
                 onClick={() => handleAddToCart("buy")}
                 disabled={
                   loadingAction !== null ||
-                  (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+                  (selectedVariant ? selectedVariant?.stock : product?.stock) <=
+                    0 ||
+                  selectedVariant?.stockStatus === "outofstock"
                 }
               >
                 {loadingAction === "buy" ? <ButtonLoadingSpinner /> : "Buy Now"}
@@ -336,10 +350,16 @@ function ProductDetailsContent() {
                 onClick={() => handleAddToCart("cart")}
                 disabled={
                   loadingAction !== null ||
-                  (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
+                  (selectedVariant ? selectedVariant?.stock : product?.stock) <=
+                    0 ||
+                  selectedVariant?.stockStatus === "outofstock"
                 }
               >
-                {loadingAction === "cart" ? <ButtonLoadingSpinner /> : "Add To Cart"}
+                {loadingAction === "cart" ? (
+                  <ButtonLoadingSpinner />
+                ) : (
+                  "Add To Cart"
+                )}
               </button>
             </div>
           </div>
@@ -391,10 +411,11 @@ function ProductDetailsContent() {
                       <div
                         className="fill"
                         style={{
-                          width: `${(product?.ratingDistribution[5] /
-                            product?.totalRatings) *
-                            100 || 0
-                            }%`,
+                          width: `${
+                            (product?.ratingDistribution[5] /
+                              product?.totalRatings) *
+                              100 || 0
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -406,10 +427,11 @@ function ProductDetailsContent() {
                       <div
                         className="fill"
                         style={{
-                          width: `${(product?.ratingDistribution[4] /
-                            product?.totalRatings) *
+                          width: `${
+                            (product?.ratingDistribution[4] /
+                              product?.totalRatings) *
                             100
-                            }%`,
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -421,10 +443,11 @@ function ProductDetailsContent() {
                       <div
                         className="fill"
                         style={{
-                          width: `${(product?.ratingDistribution[3] /
-                            product?.totalRatings) *
+                          width: `${
+                            (product?.ratingDistribution[3] /
+                              product?.totalRatings) *
                             100
-                            }%`,
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -436,10 +459,11 @@ function ProductDetailsContent() {
                       <div
                         className="fill"
                         style={{
-                          width: `${(product?.ratingDistribution[2] /
-                            product?.totalRatings) *
+                          width: `${
+                            (product?.ratingDistribution[2] /
+                              product?.totalRatings) *
                             100
-                            }%`,
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -451,10 +475,11 @@ function ProductDetailsContent() {
                       <div
                         className="fill"
                         style={{
-                          width: `${(product?.ratingDistribution[1] /
-                            product?.totalRatings) *
+                          width: `${
+                            (product?.ratingDistribution[1] /
+                              product?.totalRatings) *
                             100
-                            }%`,
+                          }%`,
                         }}
                       ></div>
                     </div>
@@ -561,7 +586,11 @@ function ProductDetailsContent() {
               (selectedVariant ? selectedVariant?.stock : product?.stock) <= 0
             }
           >
-            {loadingAction === "cart" ? <ButtonLoadingSpinner /> : "Add To Cart"}
+            {loadingAction === "cart" ? (
+              <ButtonLoadingSpinner />
+            ) : (
+              "Add To Cart"
+            )}
           </button>
           <button
             className="buy-now"

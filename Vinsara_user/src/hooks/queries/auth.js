@@ -10,7 +10,7 @@ export const useLogin = () => {
   return useMutation({
     mutationFn: ({ email, password }) => authService.login(email, password),
     onSuccess: (data) => {
-      navigate("/otp", { state: { email: data?.content?.email } })
+      navigate("/otp", { state: { email: data?.content?.email } });
     },
     onError: (error) => {
       toast.error(error.response?.data?.message || "Failed to login");
@@ -53,7 +53,6 @@ export const useSignup = () => {
   });
 };
 
-
 export const useVerifyOtp = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -68,11 +67,10 @@ export const useVerifyOtp = () => {
       dispatch(setIsLoggedIn(true));
       toast.success("Login successful");
       // handleRedirectAfterLogin(navigate);
-      navigate("/")
+      navigate("/");
     },
   });
 };
-
 
 export const useResendOtp = () => {
   return useMutation({

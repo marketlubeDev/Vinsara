@@ -6,24 +6,19 @@ import LoadingSpinner from "../../components/spinner/LoadingSpinner";
 import Pagination from "../../components/Admin/Pagination";
 import { FaSearch } from "react-icons/fa";
 import { useSelector } from "react-redux";
+import { getAllCategories } from "../../sevices/categoryApis";
+import { toast } from "react-toastify";
 
 const Inventory = ({ role }) => {
-  const store = useSelector((state) => state.store.store);
-  const stores = useSelector((state) => state.adminUtilities.stores);
-  const categories = useSelector((state) => state.adminUtilities.categories);
-  const brands = useSelector((state) => state.adminUtilities.brands);
-
   const [inventory, setInventory] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
-  const [selectedStore, setSelectedStore] = useState(
-    role === "admin" ? "All Stores" : store?._id
-  );
-  const [selectedBrand, setSelectedBrand] = useState("All Brands");
+
   const [selectedCategory, setSelectedCategory] = useState("All Categories");
   const [searchQuery, setSearchQuery] = useState("");
+  const [categories, setCategories] = useState([]);
 
   const [isLoading, setIsLoading] = useState(false);
 
@@ -57,8 +52,6 @@ const Inventory = ({ role }) => {
     try {
       setLoading(true);
       const response = await getInventory({
-        storeId: selectedStore,
-        brandId: selectedBrand,
         search: searchQuery,
         categoryId: selectedCategory,
         page: 1,
@@ -93,8 +86,6 @@ const Inventory = ({ role }) => {
       const params = {
         page: pageNumber,
         limit: 10,
-        storeId: selectedStore !== "All Stores" ? selectedStore : undefined,
-        brandId: selectedBrand !== "All Brands" ? selectedBrand : undefined,
         categoryId:
           selectedCategory !== "All Categories" ? selectedCategory : undefined,
         search: searchQuery || undefined,
@@ -126,26 +117,16 @@ const Inventory = ({ role }) => {
   useEffect(() => {
     if (currentPage !== 1) setCurrentPage(1);
     else fetchInventory(1, false);
-    // eslint-disable-next-line
-  }, [selectedStore, selectedBrand, selectedCategory, searchQuery]);
+  }, [selectedCategory, searchQuery]);
 
   useEffect(() => {
     fetchInventory(currentPage, false);
-    // eslint-disable-next-line
   }, [currentPage]);
 
   const handlePageChange = (page) => {
     if (page !== currentPage && page > 0 && page <= totalPages) {
       setCurrentPage(page);
     }
-  };
-
-  const handleStoreChange = (e) => {
-    setSelectedStore(e.target.value);
-  };
-
-  const handleBrandChange = (e) => {
-    setSelectedBrand(e.target.value);
   };
 
   const handleSearchChange = (e) => {
@@ -156,46 +137,24 @@ const Inventory = ({ role }) => {
     setSelectedCategory(e.target.value);
   };
 
+  const fetchCategories = async () => {
+    try {
+      const response = await getAllCategories();
+      setCategories(response.envelop.data);
+    } catch (error) {
+      toast.error(error?.message || "Error fetching categories");
+    }
+  };
+
+  useEffect(() => {
+    fetchCategories();
+  }, []);
+
   return (
     <>
       <PageHeader content="Inventory" marginBottom="mb-0" />
       <div className="bg-white p-4 shadow flex gap-2">
-        {/* <div className="text-sm text-gray-600 space-y-1">
-          <select
-            className="border border-gray-300 rounded-md px-4 py-2 w-60"
-            value={selectedStore}
-            onChange={handleStoreChange}
-            disabled={role === "store"}
-          >
-            {role === "admin" ? (
-              <option value="All Stores">All Stores</option>
-            ) : (
-              <option value={store?._id}>{store?.store_name}</option>
-            )}
-            {role === "admin" &&
-              stores?.map((store) => (
-                <option key={store._id} value={store._id}>
-                  {store?.store_name}
-                </option>
-              ))}
-          </select>
-        </div> */}
-        {/* <div className="text-sm text-gray-600 space-y-1">
-          <select
-            className="border border-gray-300 rounded-md px-4 py-2 w-60"
-            value={selectedBrand}
-            onChange={handleBrandChange}
-          >
-            <option value="All Brands">All Brands</option>
-            {brands?.map((brand) => (
-              <option key={brand._id} value={brand._id}>
-                {brand?.name}
-              </option>
-            ))}
-          </select>
-        </div> */}
-
-        {/* <div className="text-sm text-gray-600 space-y-1">
+        <div className="text-sm text-gray-600 space-y-1">
           <select
             className="border border-gray-300 rounded-md px-4 py-2 w-60"
             value={selectedCategory}
@@ -208,7 +167,7 @@ const Inventory = ({ role }) => {
               </option>
             ))}
           </select>
-        </div> */}
+        </div>
         <div className="text-sm text-gray-600 space-y-1 ml-auto">
           <button
             className="bg-green-500 text-white px-4 py-2 rounded-md flex gap-1 items-center justify-center text-md"

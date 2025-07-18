@@ -150,6 +150,13 @@ function Addproduct() {
   // Handle variant field change
   const handleVariantChange = (e) => {
     const { name, value } = e.target;
+
+    // Prevent negative values for number fields
+    if (["mrp", "offerPrice", "costPrice"].includes(name)) {
+      const numValue = parseFloat(value);
+      if (numValue < 0) return; // Don't update if negative
+    }
+
     setVariants((prev) =>
       prev.map((v, i) => (i === activeVariant ? { ...v, [name]: value } : v))
     );
@@ -178,9 +185,15 @@ function Addproduct() {
 
   // Handle stock quantity
   const handleStockQuantity = (e) => {
+    const value = e.target.value;
+
+    // Prevent negative values for stock quantity
+    const numValue = parseInt(value);
+    if (numValue < 0) return; // Don't update if negative
+
     setVariants((prev) =>
       prev.map((v, i) =>
-        i === activeVariant ? { ...v, stockQuantity: e.target.value } : v
+        i === activeVariant ? { ...v, stockQuantity: value } : v
       )
     );
   };
@@ -623,6 +636,7 @@ function Addproduct() {
                     value={variants[activeVariant].mrp}
                     onChange={handleVariantChange}
                     onWheel={(e) => e.target.blur()}
+                    min="0"
                     className={`w-full border rounded-lg px-8 py-2 ${
                       getError("mrp", true, activeVariant)
                         ? "border-red-500"
@@ -652,6 +666,7 @@ function Addproduct() {
                     value={variants[activeVariant].offerPrice}
                     onChange={handleVariantChange}
                     onWheel={(e) => e.target.blur()}
+                    min="0"
                     className={`w-full border rounded-lg px-8 py-2 ${
                       getError("offerPrice", true, activeVariant)
                         ? "border-red-500"
@@ -681,6 +696,7 @@ function Addproduct() {
                     value={variants[activeVariant].costPrice}
                     onChange={handleVariantChange}
                     onWheel={(e) => e.target.blur()}
+                    min="0"
                     className={`w-full border rounded-lg px-8 py-2 ${
                       getError("costPrice", true, activeVariant)
                         ? "border-red-500"
@@ -828,6 +844,7 @@ function Addproduct() {
                   value={variants[activeVariant].stockQuantity}
                   onChange={handleStockQuantity}
                   onWheel={(e) => e.target.blur()}
+                  min="0"
                   disabled={isLoadingProduct}
                 />
                 {getError("stockQuantity", true, activeVariant) && (

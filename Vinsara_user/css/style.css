@@ -3859,6 +3859,9 @@ body.filter-open {
   border: 1px solid #ddc062;
   color: #ddc062;
 }
+.product-details .product-container .price .buy-buttons .add-cart:disabled {
+  cursor: not-allowed;
+}
 .product-details .product-container .price .buy-buttons .product-out-of-stock {
   color: #f00;
   font-size: 0.875rem;

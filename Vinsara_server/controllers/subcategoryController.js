@@ -69,7 +69,10 @@ const updateSubCategory = catchAsync(async (req, res) => {
 
 const deleteSubCategory = catchAsync(async (req, res) => {
   const { id } = req.params;
-  const productCount = await Product.countDocuments({ subcategory: id });
+  const productCount = await Product.countDocuments({
+    subcategory: id,
+    isDeleted: false,
+  });
   if (productCount > 0) {
     return res
       .status(400)

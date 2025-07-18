@@ -6,7 +6,6 @@ const otpToEmail = require("../utilities/sendMail");
 
 const otpStore = new Map();
 
-
 const register = catchAsync(async (req, res, next) => {
   const { username, email, phonenumber, password } = req.body;
   if (!username || !email || !phonenumber || !password) {
@@ -64,8 +63,6 @@ const register = catchAsync(async (req, res, next) => {
 //   });
 // });
 
-
-
 const sendOtp = catchAsync(async (req, res, next) => {
   const { email } = req.body;
 
@@ -76,7 +73,6 @@ const sendOtp = catchAsync(async (req, res, next) => {
     userData: req.body,
   });
 
-
   res.status(200).json({
     status: "Success",
     message: "OTP has been sent successfully to your email",
@@ -84,8 +80,7 @@ const sendOtp = catchAsync(async (req, res, next) => {
       email,
     },
   });
-
-})
+});
 const userLogOut = catchAsync(async (req, res, next) => {
   res.clearCookie("user-auth-token");
 
@@ -121,7 +116,6 @@ const listUsers = catchAsync(async (req, res, next) => {
   });
 });
 
-
 const verifyOtp = catchAsync(async (req, res, next) => {
   const { email, otp } = req.body;
 
@@ -149,7 +143,6 @@ const verifyOtp = catchAsync(async (req, res, next) => {
     }
     const savedUser = await newUser.save();
 
-
     const token = createToken(savedUser._id);
 
     res.status(200).json({
@@ -174,13 +167,46 @@ const verifyOtp = catchAsync(async (req, res, next) => {
   // const savedUser = await newUser.save();
   // Create cart for the user
 
-
   // Save user
 
   // Clear OTP after successful verification
   // otpStore.delete(email);
 
   // sendToken(newUser, 201, res);
+});
+
+const resendOtp = catchAsync(async (req, res, next) => {
+  const { email } = req.body;
+
+  // Get stored OTP data
+  const storedOtpData = otpStore.get(email);
+  if (!storedOtpData) {
+    return next(
+      new AppError("Email not found. Please request a new OTP.", 400)
+    );
+  }
+
+  // Send new OTP
+  const [response, status, newOtp] = await otpToEmail(email);
+
+  if (status !== "OK") {
+    return next(new AppError("Failed to send OTP. Please try again.", 500));
+  }
+
+  // Update stored OTP with new OTP
+  otpStore.set(email, {
+    otp: newOtp,
+    expires: Date.now() + 10 * 60 * 1000,
+    userData: storedOtpData.userData,
+  });
+
+  res.status(200).json({
+    status: "Success",
+    message: "New OTP has been sent successfully to your email",
+    content: {
+      email,
+    },
+  });
 });
 
 const searchUser = catchAsync(async (req, res, next) => {
@@ -271,5 +297,6 @@ module.exports = {
   updateUser,
   deleteUserAddress,
   sendOtp,
-  verifyOtp
+  verifyOtp,
+  resendOtp,
 };
