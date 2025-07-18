@@ -38,6 +38,7 @@ function Category() {
   const [itemsPerPage] = useState(10);
   const [totalPages, setTotalPages] = useState(1);
   const [imagePreview, setImagePreview] = useState(null);
+  const [imageError, setImageError] = useState(false);
   const fileInputRef = useRef(null);
 
   useEffect(() => {
@@ -103,11 +104,20 @@ function Category() {
         image: file,
       }));
       setImagePreview(URL.createObjectURL(file));
+      setImageError(false);
     }
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    // Validate that image is selected
+    if (!formData.image && !imagePreview) {
+      setImageError(true);
+      toast.error("Please select a category image");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -154,6 +164,7 @@ function Category() {
       image: null,
     });
     setImagePreview(null);
+    setImageError(false);
     setEditingCategory(null);
   };
 
@@ -161,7 +172,6 @@ function Category() {
     setShowModal(false);
     resetForm();
   };
-
 
   const handleOpenModal = () => {
     setShowModal(true);
@@ -529,11 +539,15 @@ function Category() {
             <form onSubmit={handleSubmit}>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-2">
-                  Category Image
+                  Category Image <span className="text-red-500">*</span>
                 </label>
                 <div
                   onClick={handleImageClick}
-                  className="relative w-full h-48 border-2 border-dashed border-gray-300 rounded-lg flex items-center justify-center cursor-pointer hover:border-gray-400 transition-colors"
+                  className={`relative w-full h-48 border-2 border-dashed rounded-lg flex items-center justify-center cursor-pointer transition-colors ${
+                    imageError || (!imagePreview && !formData.image)
+                      ? "border-red-300 hover:border-red-400"
+                      : "border-gray-300 hover:border-gray-400"
+                  }`}
                 >
                   {imagePreview ? (
                     <div className="relative w-full h-full">
@@ -550,6 +564,7 @@ function Category() {
                     <div className="text-center">
                       <FaCamera className="mx-auto text-gray-400 text-3xl mb-2" />
                       <p className="text-gray-500">Click to upload image</p>
+                      <p className="text-red-500 text-sm">Required</p>
                       <p className="text-gray-500" style={{ fontSize: "12px" }}>
                         ( 1:1 aspect ratio recommended )
                       </p>
@@ -563,6 +578,11 @@ function Category() {
                   accept="image/*"
                   className="hidden"
                 />
+                {imageError && (
+                  <p className="text-red-500 text-sm mt-1">
+                    Please select a category image
+                  </p>
+                )}
               </div>
               <div className="mb-4">
                 <label className="block text-sm font-medium text-gray-700 mb-1">

@@ -30,41 +30,7 @@ const addCategory = catchAsync(async (req, res, next) => {
 
 const getAllCategories = catchAsync(async (req, res) => {
 
-
-  // If brandId is provided, find categories through products
-  // if (brandId) {
-  //   // First get all product categories for this brand
-  //   const brandProducts = await Product.find({ brand: brandId }).distinct(
-  //     "category"
-  //   );
-
-  //   // Then get these categories with their subcategories
-  //   const categories = await Category.find({
-  //     $or: [
-  //       { _id: { $in: brandProducts } },
-  //       { parent: { $in: brandProducts } },
-  //       { _id: { $in: await Category.find({ _id: { $in: brandProducts }, isSubcategory: true }).distinct('parent') } }
-  //     ],
-  //   }).populate({
-  //     path: "subcategories",
-  //     populate: {
-  //       path: "subcategories",
-  //     },
-  //   });
-
-
-
-  //   return res.status(200).json({
-  //     success: true,
-  //     envelop: {
-  //       data: rootCategories,
-  //     },
-  //   });
-  // }
-
-  // If no brandId, return all categories (existing logic)
   const categories = await Category.find().populate("subcategories");
-
 
   res.status(200).json({
     success: true,
@@ -118,11 +84,9 @@ const editCategory = catchAsync(async (req, res, next) => {
     category.image = uploadedImage;
   }
 
-
   await category.save();
 
-
-  const updatedCategory = await Category.findById(categoryId)
+  const updatedCategory = await Category.findById(categoryId);
 
   res.status(200).json({
     success: true,
@@ -155,15 +119,13 @@ const searchCategory = catchAsync(async (req, res, next) => {
   const searchQuery = isObjectId
     ? { _id: keyword }
     : {
-      $or: [
-        { name: { $regex: keyword, $options: "i" } },
-        { description: { $regex: keyword, $options: "i" } },
-      ],
-    };
+        $or: [
+          { name: { $regex: keyword, $options: "i" } },
+          { description: { $regex: keyword, $options: "i" } },
+        ],
+      };
 
-  const categories = await Category.find(searchQuery)
-    .populate("parent")
-    .populate("subcategories");
+  const categories = await Category.find(searchQuery).populate("subcategories");
 
   res.status(200).json({
     success: true,
@@ -246,7 +208,10 @@ const deleteCategory = catchAsync(async (req, res, next) => {
   }
 
   // Check if category has products
-  const productCount = await Product.countDocuments({ category: categoryId, isDeleted: false });
+  const productCount = await Product.countDocuments({
+    category: categoryId,
+    isDeleted: false,
+  });
   if (productCount > 0) {
     return next(new AppError("Category has products, cannot delete", 400));
   }
