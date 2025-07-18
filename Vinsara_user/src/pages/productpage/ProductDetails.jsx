@@ -28,7 +28,7 @@ const CalculateDiscount = (price, offerPrice) => {
 function ProductDetailsContent() {
   const navigate = useNavigate();
   const sliderRef = useRef(null);
-  const isLoggedIn = useSelector((state) => state?.user?.isLoggedIn);
+  const isLoggedIn = useSelector((state) => state?.user?.isLoggedIn || false);
 
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -41,8 +41,6 @@ function ProductDetailsContent() {
     isLoading: isLoadingProduct,
     error: errorProducts,
   } = useProducts();
-
-  console.log(response, "response>>>");
 
   const { mutate: addToCart, isLoading: isAddingToCart } = useAddToCart();
 
@@ -59,11 +57,11 @@ function ProductDetailsContent() {
 
     if (product?.variants?.length > 0) {
       setSelectedVariant(product.variants[0]);
-      setSelectedImage(product.variants[0].images[0]);
+      setSelectedImage(product.variants[0]?.images?.[0] || null);
     } else if (product?.images?.length > 0) {
       setSelectedImage(product.images[0]);
     }
-    setReviews(product?.ratings);
+    setReviews(product?.ratings || []);
 
     window.scrollTo({
       top: 0,
@@ -84,13 +82,13 @@ function ProductDetailsContent() {
     }
   };
 
-  const visibleReviews = showAllReviews ? reviews : reviews?.slice(0, 2);
+  const visibleReviews = showAllReviews ? reviews : (reviews || []).slice(0, 2);
   // const visibleReviews = reviews;
 
   const handleAddToCart = (type) => {
     try {
       const productToAdd = {
-        productId: product._id,
+        productId: product?._id,
         variantId: selectedVariant?._id || null,
         quantity: 1,
         from: location.pathname,

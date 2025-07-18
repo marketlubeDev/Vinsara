@@ -68,7 +68,7 @@ function Cartpage() {
   useEffect(() => {
     if (cartData?.data?.couponDetails) {
       setSelectedCoupon(cartData.data.couponDetails);
-      setCouponCode(cartData.data.couponDetails.code);
+      setCouponCode(cartData.data.couponDetails?.code || "");
     }
   }, [cartData?.data?.couponDetails]);
 
@@ -85,7 +85,7 @@ function Cartpage() {
       );
     }
     if (couponsData) {
-      setAvailableCoupons(couponsData.coupons || []);
+      setAvailableCoupons(couponsData?.coupons || []);
     }
   }, [cartData, couponsData]);
 
@@ -106,7 +106,7 @@ function Cartpage() {
   const handleQuantityUpdate = (productId, variantId, action) => {
     if (
       action === "decrement" &&
-      cart.find((item) => item.product._id === productId).quantity === 1
+      cart.find((item) => item?.product?._id === productId)?.quantity === 1
     ) {
       setItemToRemove({ productId, variantId });
       setShowConfirmModal(true);
@@ -171,7 +171,6 @@ function Cartpage() {
     setCouponCode("");
     removeCoupon();
   };
-
 
   const handleCheckAvailableStock = async () => {
     //we have to check if the stock is available for the items in the cart
@@ -238,8 +237,8 @@ function Cartpage() {
                   #{item?.product?._id.slice(0, 50)}
                   {item?.product?._id.length > 50 && "..."}
                 </div>
-                <div className="stock-status" style={{ color:"red" }}>
-                  {item?.product?.stock ==0 && "Out of Stock"}
+                <div className="stock-status" style={{ color: "red" }}>
+                  {item?.product?.stock == 0 && "Out of Stock"}
                 </div>
                 <div className="quantity-controls">
                   <button
@@ -359,7 +358,7 @@ function Cartpage() {
               <div className="coupon-input">
                 <input
                   type="text"
-                  placeholder="Select coupon code"  
+                  placeholder="Select coupon code"
                   value={couponCode}
                   onChange={(e) => setCouponCode(e.target.value.toUpperCase())}
                   disabled={couponDetails}

@@ -12,7 +12,6 @@ const SavedAddress = () => {
   const [isAddressModalOpen, setIsAddressModalOpen] = useState(false);
   const addresses = user?.address;
 
-
   const handleDeleteAddress = async (id) => {
     try {
       const response = await userService.deleteAddress(id);
@@ -36,7 +35,10 @@ const SavedAddress = () => {
           <div key={index} className="address-card">
             <div className="card-header">
               <span className="address-label">{addr.label}</span>
-              <button className="delete-btn" onClick={() => handleDeleteAddress(addr._id)}>
+              <button
+                className="delete-btn"
+                onClick={() => handleDeleteAddress(addr._id)}
+              >
                 <FiTrash2 />
               </button>
             </div>
@@ -51,13 +53,27 @@ const SavedAddress = () => {
           </div>
         ))}
 
-<button
+        <button
           className="add-address-card"
           onClick={() => setIsAddressModalOpen(true)}
           disabled={addresses?.length >= 3}
         >
-          <div className={`${addresses?.length >= 3 ? "plus-icon-removed" : "plus-icon"}`}>+</div>
-          <span className={`${addresses?.length >= 3 ? "plus-icon-span-removed" : ""}`} >{addresses?.length >= 3 ? "Remove address to add new" : "Add new address"}</span>
+          <div
+            className={`${
+              addresses?.length >= 3 ? "plus-icon-removed" : "plus-icon"
+            }`}
+          >
+            +
+          </div>
+          <span
+            className={`${
+              addresses?.length >= 3 ? "plus-icon-span-removed" : ""
+            }`}
+          >
+            {addresses?.length >= 3
+              ? "Remove address to add new"
+              : "Add new address"}
+          </span>
         </button>
       </div>
 

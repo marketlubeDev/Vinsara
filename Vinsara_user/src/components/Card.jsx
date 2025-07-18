@@ -25,7 +25,7 @@ const ImageWithShimmer = ({ src, alt }) => {
       <img
         src={src}
         alt={alt}
-        className={`card-image ${isLoading ? 'hidden' : ''}`}
+        className={`card-image ${isLoading ? "hidden" : ""}`}
         onLoad={handleLoad}
         onError={handleError}
         loading="lazy"
@@ -54,7 +54,7 @@ function Card({ product }) {
     height,
     _id,
     stockStatus,
-  } = product;
+  } = product || {};
 
   const navigate = useNavigate();
   return (
@@ -79,14 +79,12 @@ function Card({ product }) {
         </div>
       </div>
 
-      <div className="product-card_content" >
+      <div className="product-card_content">
         {/* <span className="category">{category.name}</span> */}
-        <h3 className="title">
-          { name}
-        </h3>
+        <h3 className="title">{name || "Product Name"}</h3>
         <div className="price">
-          <span className="current-price">₹{offerPrice}</span>
-          <span className="original-price">₹{price}</span>
+          <span className="current-price">₹{offerPrice || 0}</span>
+          <span className="original-price">₹{price || 0}</span>
           {stockStatus === "outofstock" && (
             <span className="out-of-stock">Sold Out</span>
           )}

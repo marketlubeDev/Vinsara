@@ -38,12 +38,12 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
 
   const updatedUser = async () => {
     const response = await userService.getAuthUser();
-    dispatch(setUser(response.user));
+    dispatch(setUser(response?.user));
   };
 
   const { mutate: updateUser, isPending: isUpdatePending } = useUpdateUser();
   const { mutate: placeOrder, isPending: isOrderPending } = usePlaceOrder();
-  const savedAddresses = user?.address;
+  const savedAddresses = user?.address || [];
 
   useEffect(() => {
     if (isOpen) {
@@ -190,7 +190,6 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
   };
 
   const handleAddressSelection = () => {
-
     const { fullName, building, street, city, state, pincode } = formData;
 
     if (
@@ -257,7 +256,6 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
                   (UPI, Net banking, Debit Card/Credit Card can be used)
                 </span>
               </label>
-
             </>
           ) : (
             <>

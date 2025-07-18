@@ -11,6 +11,7 @@ import { useGroupLabels } from "../../hooks/queries/labels";
 import Sections from "./components/Sections";
 import { useOfferBanner } from "../../hooks/queries/offerBanner";
 import BestSellerv2 from "./components/BestSellerv2";
+import { useCart } from "../../hooks/queries/cart";
 
 function Homepage() {
   const { allBanners, isLoading } = useBanners();
@@ -18,6 +19,7 @@ function Homepage() {
 
   const { activeOffers, isLoading: activeOffersLoading } = useActiveOffers();
   const { data: groupLabels } = useGroupLabels();
+  const { data: cart } = useCart();
   const [isMobile, setIsMobile] = useState(false);
   useEffect(() => {
     const handleResize = () => {
@@ -29,7 +31,7 @@ function Homepage() {
     return () => window.removeEventListener("resize", handleResize);
   }, []);
 
-  const heroBanners = allBanners
+  const heroBanners = (allBanners || [])
     ?.filter((banner) => banner?.bannerFor === "hero")
     .map((banner) => ({
       ...banner,

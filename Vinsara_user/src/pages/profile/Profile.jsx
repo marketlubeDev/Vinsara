@@ -29,9 +29,13 @@ const Profile = () => {
     }
   }, [searchParams]);
 
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, []);
+
   const updatedUser = async () => {
     const response = await userService.getAuthUser();
-    dispatch(setUser(response.user));
+    dispatch(setUser(response?.user));
   };
 
   const handleSubmit = async (e) => {
@@ -65,7 +69,7 @@ const Profile = () => {
         phonenumber: formData.phone,
       });
       toast.success("Profile updated successfully");
-      dispatch(setUser(user));
+      dispatch(setUser(user?.user || user));
       // Handle form submission
     } catch (error) {
       console.log(error);

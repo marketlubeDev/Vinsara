@@ -1,5 +1,6 @@
 import axios from "axios";
 import { NetworkError } from "../utils/errors.js";
+import { storeRedirectPath } from "../utils/redirectUtils";
 
 const apiClient = axios.create({
   baseURL: import.meta.env.VITE_API_URL,
@@ -35,8 +36,21 @@ apiClient.interceptors.response.use(
       );
     }
     if (error.response.status === 401) {
+      console.log("401 error in API interceptor - storing redirect path before removing token");
+      const currentPath = window.location.pathname + window.location.search;
+      const protectedPaths = ["/cart", "/profile", "/checkout", "/orders"];
+      const isProtectedRoute = protectedPaths.some(path => currentPath.startsWith(path));
+      
+      if (isProtectedRoute) {
+        storeRedirectPath(currentPath);
+      }
+      
       localStorage.removeItem("user-auth-token");
-      // window.location.href = "/login";
+      
+      // Navigate to login if on a protected route
+      if (isProtectedRoute) {
+        window.location.href = "/login";
+      }
     }
     throw error;
   }

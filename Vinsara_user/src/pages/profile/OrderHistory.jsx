@@ -9,7 +9,7 @@ const OrderHistory = () => {
   const [isOrderStatusOpen, setIsOrderStatusOpen] = useState(false);
   const [selectedOrder, setSelectedOrder] = useState(null);
   const { data, isLoading } = useGetOrderHistory();
-  const orders = data?.orders;
+  const orders = data?.orders || [];
 
   const handleOrderStatusOpen = (order) => {
     console.log(order, "order");
@@ -23,15 +23,17 @@ const OrderHistory = () => {
   };
 
   // Filter orders based on the search query
-  const filteredOrders = orders?.filter((order) =>
-    order.products.some((product) =>
-      product?.productId?.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredOrders = (orders || []).filter((order) =>
+    (order?.products || []).some((product) =>
+      product?.productId?.name
+        ?.toLowerCase()
+        .includes(searchQuery.toLowerCase())
     )
   );
 
   useEffect(() => {
     if (selectedOrder) {
-      const updatedSelectedOrder = orders.find(
+      const updatedSelectedOrder = (orders || []).find(
         (order) => order?._id === selectedOrder?._id
       );
       setSelectedOrder(updatedSelectedOrder);
@@ -116,8 +118,7 @@ const OrderHistory = () => {
 
                         <div className="total-col" data-label="Total Amount">
                           <div className="total-amount">
-                            ₹{" "}
-                            {order?.totalAmount}
+                            ₹ {order?.totalAmount}
                           </div>
                         </div>
 

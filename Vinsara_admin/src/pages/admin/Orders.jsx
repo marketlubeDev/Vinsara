@@ -228,8 +228,9 @@ function Orders() {
         <div className="relative" ref={dropdownRef}>
           <button
             onClick={() => !isStatusChangeDisabled && setIsOpen(!isOpen)}
-            className={`inline-flex items-center gap-2 ${isStatusChangeDisabled ? "cursor-not-allowed opacity-75" : ""
-              }`}
+            className={`inline-flex items-center gap-2 ${
+              isStatusChangeDisabled ? "cursor-not-allowed opacity-75" : ""
+            }`}
             disabled={isStatusChangeDisabled}
             title={
               isStatusChangeDisabled
@@ -275,8 +276,9 @@ function Orders() {
                   <button
                     key={status}
                     onClick={() => handleStatusClick(status)}
-                    className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left ${currentStatus === status ? "bg-gray-50" : ""
-                      }`}
+                    className={`block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100 w-full text-left ${
+                      currentStatus === status ? "bg-gray-50" : ""
+                    }`}
                   >
                     {formatStatusDisplay(status)}
                   </button>
@@ -289,8 +291,9 @@ function Orders() {
             isOpen={showConfirmation}
             onClose={() => setShowConfirmation(false)}
             onConfirm={handleConfirm}
-            status={`${type === "payment" ? "Payment" : "Order"
-              } status to ${formatStatusDisplay(selectedStatus)}`}
+            status={`${
+              type === "payment" ? "Payment" : "Order"
+            } status to ${formatStatusDisplay(selectedStatus)}`}
           />
         </div>
       </td>
@@ -329,13 +332,13 @@ function Orders() {
     const handlePaymentStatusChange = async (newStatus) => {
       try {
         const result = await updateOrderStatus(order._id, newStatus, "payment");
-        if (result.success) {
+        if (result?.data?.success) {
           setPaymentStatus(newStatus);
-          toast.success(result.message);
+          toast.success(result?.data?.message);
           // Refresh data after successful status update
           await fetchData();
         } else {
-          toast.error(result.message);
+          toast.error(result?.data?.message);
         }
       } catch (error) {
         console.log(error);
@@ -344,16 +347,15 @@ function Orders() {
     };
 
     const handleOrderStatusChange = async (newStatus) => {
-
       try {
         const result = await updateOrderStatus(order._id, newStatus, "order");
-        if (result.success) {
+        if (result?.data?.success) {
           setOrderStatus(newStatus);
-          toast.success(result.message);
+          toast.success(result?.data?.message);
           // Refresh data after successful status update
           await fetchData();
         } else {
-          toast.error(result.message);
+          toast.error(result?.data?.message);
         }
       } catch (error) {
         console.log(error);
@@ -383,7 +385,8 @@ function Orders() {
                 className="font-medium cursor-pointer"
                 title={product?.productId?.name}
               >
-                {product?.productId?.name && product?.productId?.name.length > 30
+                {product?.productId?.name &&
+                product?.productId?.name.length > 30
                   ? `${product?.productId?.name.substring(0, 30)}...`
                   : product?.productId?.name}
               </p>
@@ -423,7 +426,8 @@ function Orders() {
                   className="font-medium text-gray-900 truncate"
                   title={order.deliveryAddress.fullName}
                 >
-                  {order.deliveryAddress.fullName && order.deliveryAddress.fullName.length > 30
+                  {order.deliveryAddress.fullName &&
+                  order.deliveryAddress.fullName.length > 30
                     ? `${order.deliveryAddress.fullName.substring(0, 30)}...`
                     : order.deliveryAddress.fullName}
                 </div>
@@ -431,7 +435,8 @@ function Orders() {
                   className="text-gray-600 truncate"
                   title={order.deliveryAddress.building}
                 >
-                  {order.deliveryAddress.building && order.deliveryAddress.building.length > 30
+                  {order.deliveryAddress.building &&
+                  order.deliveryAddress.building.length > 30
                     ? `${order.deliveryAddress.building.substring(0, 30)}...`
                     : order.deliveryAddress.building}
                 </div>
@@ -439,7 +444,8 @@ function Orders() {
                   className="text-gray-600 truncate"
                   title={order.deliveryAddress.street}
                 >
-                  {order.deliveryAddress.street && order.deliveryAddress.street.length > 30
+                  {order.deliveryAddress.street &&
+                  order.deliveryAddress.street.length > 30
                     ? `${order.deliveryAddress.street.substring(0, 30)}...`
                     : order.deliveryAddress.street}
                 </div>
@@ -448,7 +454,8 @@ function Orders() {
                     className="text-gray-600 truncate"
                     title={`Near: ${order.deliveryAddress.landmark}`}
                   >
-                    Near: {order.deliveryAddress.landmark.length > 25
+                    Near:{" "}
+                    {order.deliveryAddress.landmark.length > 25
                       ? `${order.deliveryAddress.landmark.substring(0, 25)}...`
                       : order.deliveryAddress.landmark}
                   </div>
@@ -706,27 +713,27 @@ function Orders() {
             {(selectedCategory ||
               selectedStatus ||
               (dateRange[0] && dateRange[1])) && (
-                <button
-                  onClick={() => {
-                    setSelectedCategory("");
-                    setSelectedStatus("");
-                    setDateRange([null, null]);
-                  }}
-                  className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
-                >
-                  <TfiReload className="w-4 h-4" />
-                  <span>Reset Filters</span>
-                  <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
-                    {[
-                      selectedCategory && "Category",
-                      selectedStatus && "Status",
-                      dateRange[0] && dateRange[1] && "Date",
-                    ]
-                      .filter(Boolean)
-                      .join(", ")}
-                  </span>
-                </button>
-              )}
+              <button
+                onClick={() => {
+                  setSelectedCategory("");
+                  setSelectedStatus("");
+                  setDateRange([null, null]);
+                }}
+                className="flex items-center gap-2 px-4 py-2 text-sm font-medium text-blue-600 bg-blue-50 rounded-lg hover:bg-blue-100 transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-blue-200"
+              >
+                <TfiReload className="w-4 h-4" />
+                <span>Reset Filters</span>
+                <span className="ml-1 text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                  {[
+                    selectedCategory && "Category",
+                    selectedStatus && "Status",
+                    dateRange[0] && dateRange[1] && "Date",
+                  ]
+                    .filter(Boolean)
+                    .join(", ")}
+                </span>
+              </button>
+            )}
           </div>
 
           {/* <div className="flex justify-between items-center mb-4">
@@ -824,10 +831,11 @@ function Orders() {
               <button
                 key={pageNumber}
                 onClick={() => handlePageChange(pageNumber)}
-                className={`px-3 py-1 rounded ${currentPage === pageNumber
-                  ? "bg-blue-500 text-white hover:bg-blue-600"
-                  : "border hover:bg-gray-50"
-                  }`}
+                className={`px-3 py-1 rounded ${
+                  currentPage === pageNumber
+                    ? "bg-blue-500 text-white hover:bg-blue-600"
+                    : "border hover:bg-gray-50"
+                }`}
               >
                 {pageNumber}
               </button>

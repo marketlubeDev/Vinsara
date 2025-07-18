@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 import { useDispatch } from "react-redux";
 import { setUser, setIsLoggedIn } from "../../redux/features/user/userSlice";
+import { handleRedirectAfterLogin } from "../../utils/redirectUtils";
 export const useLogin = () => {
   const navigate = useNavigate();
   const dispatch = useDispatch();
@@ -66,8 +67,7 @@ export const useVerifyOtp = () => {
       dispatch(setUser(data.content?.user));
       dispatch(setIsLoggedIn(true));
       toast.success("Login successful");
-      // handleRedirectAfterLogin(navigate);
-      navigate("/");
+      handleRedirectAfterLogin(navigate);
     },
   });
 };

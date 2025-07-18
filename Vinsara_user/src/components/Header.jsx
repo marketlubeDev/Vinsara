@@ -14,12 +14,14 @@ import { logout } from "../redux/features/user/userSlice";
 import { useDispatch } from "react-redux";
 import { useProducts, useSearchProducts } from "../hooks/queries/products";
 import { NavBar } from "./NavBar";
+import { storeRedirectPath } from "../utils/redirectUtils";
+import { clearCart } from "../redux/features/cart/cartSlice";
 
 export default function Header() {
   const dispatch = useDispatch();
+  const cart = useSelector((state) => state.cart.cart);
   const user = useSelector((state) => state.user.user);
   const isLoggedIn = useSelector((state) => state.user.isLoggedIn);
-
   const [isSearchOpen, setIsSearchOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
   const userMenuRef = useRef(null);
@@ -34,10 +36,8 @@ export default function Header() {
     useSearchProducts(searchQuery);
 
   useEffect(() => {
-    setSearchResults(searchProducts?.data?.products);
+    setSearchResults(searchProducts?.data?.products || []);
   }, [searchProducts]);
-
-
 
   const toggleSearch = () => {
     setSearchQuery("");
@@ -53,7 +53,6 @@ export default function Header() {
     }
   };
 
-
   const handleCartNavigation = () => {
     const token = localStorage.getItem("user-auth-token");
     console.log("Cart navigation - token check:", { token, isLoggedIn });
@@ -61,7 +60,7 @@ export default function Header() {
     if (!token || token === "undefined" || token === null || token === "") {
       console.log("No token found, storing redirect path for cart");
       // // Store redirect path before navigation using utility function
-      // storeRedirectPath("/cart");
+      storeRedirectPath("/cart");
       navigate("/login");
     } else {
       navigate("/cart");
@@ -72,6 +71,7 @@ export default function Header() {
     setIsUserMenuOpen(false);
     if (item === "logout") {
       localStorage.removeItem("user-auth-token");
+      dispatch(clearCart());
       dispatch(logout());
       navigate("/login");
     }
@@ -89,8 +89,6 @@ export default function Header() {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
-
-
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);
     setIsSearchOpen(false);
@@ -102,11 +100,13 @@ export default function Header() {
     setSearchQuery(e.target.value);
   };
 
-
   return (
     <>
       <header className="header">
-        <Link to="/" onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}>
+        <Link
+          to="/"
+          onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+        >
           <div className="header-logo">
             <img
               src={"/logo/Logo.svg"}
@@ -190,8 +190,8 @@ export default function Header() {
                     <img src="/images/user/profilepicture.jpg" alt="User" />
                   </div>
                   <div className="user-info">
-                    <h4>{user?.username}</h4>
-                    <p>{user?.email}</p>
+                    <h4>{user?.username || "User"}</h4>
+                    <p>{user?.email || "user@example.com"}</p>
                   </div>
                   <IoIosArrowForward className="arrow-icon" />
                 </Link>
@@ -234,12 +234,12 @@ export default function Header() {
             )}
             <div className="icon" onClick={handleCartNavigation}>
               <PiShoppingCart />
+              {(cart?.items?.length || 0) > 0 && (
+                <span className="cart-label">{cart?.items?.length || 0}</span>
+              )}
             </div>
           </div>
-
         </div>
-
-
 
         {/* Mobile Search Overlay */}
         <div
