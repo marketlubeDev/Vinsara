@@ -15,7 +15,6 @@ import BestSellerv2 from "./components/BestSellerv2";
 function Homepage() {
   const { allBanners, isLoading } = useBanners();
   const { offerBanner, isLoading: offerBannerLoading } = useOfferBanner();
-  console.log(offerBanner , "Offer Banner>>");
 
   const { activeOffers, isLoading: activeOffersLoading } = useActiveOffers();
   const { data: groupLabels } = useGroupLabels();
@@ -38,6 +37,9 @@ function Homepage() {
         isMobile && banner?.mobileImage ? banner?.mobileImage : banner?.image,
     }));
 
+  console.log(offerBanner, "Offer Banner>>");
+  console.log(groupLabels, "Group Labels>>");
+
   return (
     <div>
       <Carousel data={heroBanners} isLoading={isLoading} />
@@ -47,48 +49,63 @@ function Homepage() {
         <>
           {" "}
           <CarouselBanner data={activeOffers} isLoading={activeOffersLoading} />
-         
         </>
       )}
 
       {/* <Bestseller /> */}
       <BestSellerv2 />
 
-      {offerBanner?.length > 0 &&
-        groupLabels?.data?.length > 0 &&
-        groupLabels?.data?.map((label, index) => (
-          <React.Fragment key={label?.label}>
-            {/* <div className="divider-home" /> */}
-            <Sections label={label} />
+      {/* Start pattern with offer banner, then 2 labels + 1 banner */}
+      {offerBanner?.length > 0 && groupLabels?.data?.length > 0 && (
+        <>
+          {(() => {
+            const labels = groupLabels.data;
+            const banners = offerBanner;
+            const result = [];
+            let labelIndex = 0;
+            let bannerIndex = 0;
 
-            {(index + 1) % 2 === 0 && index !== groupLabels.data.length - 1 && (
-              <>
-                {offerBanner?.[Math.floor(index / 2) + 1] && (
-                  <>
-                    {/* <div className="divider-home" /> */}
+            while (labelIndex < labels.length || bannerIndex < banners.length) {
+              // Add 1 banner first (if this is the first iteration and banner is available)
+              if (bannerIndex < banners.length) {
+                result.push(
+                  <React.Fragment key={`banner-${bannerIndex}`}>
                     <Offer
-                      banners={offerBanner[Math.floor(index / 2) + 1].banners}
+                      banners={banners[bannerIndex].banners}
                       isLoading={offerBannerLoading}
                       error={null}
                     />
-                  </>
-                )}
-              </>
-            )}
-          </React.Fragment>
-        ))}
-      {/* Show remaining offer banner sections if any */}
-      {/* <div className="divider-home" /> */}
-      {offerBanner
-        ?.slice(Math.ceil(groupLabels?.data?.length / 2))
-        .map((section) => (
-          <React.Fragment key={section.section}>
+                  </React.Fragment>
+                );
+                bannerIndex++;
+              }
+
+              // Add up to 2 labels
+              for (let i = 0; i < 2 && labelIndex < labels.length; i++) {
+                result.push(
+                  <React.Fragment key={`label-${labelIndex}`}>
+                    <Sections label={labels[labelIndex]} />
+                  </React.Fragment>
+                );
+                labelIndex++;
+              }
+            }
+
+            return result;
+          })()}
+        </>
+      )}
+
+      {/* If no labels but banners exist, show all banners */}
+      {(!groupLabels?.data || groupLabels.data.length === 0) &&
+        offerBanner?.length > 0 &&
+        offerBanner.map((section, index) => (
+          <React.Fragment key={`banner-only-${index}`}>
             <Offer
               banners={section.banners}
               isLoading={offerBannerLoading}
               error={null}
             />
-            {/* <div className="divider-home" /> */}
           </React.Fragment>
         ))}
     </div>

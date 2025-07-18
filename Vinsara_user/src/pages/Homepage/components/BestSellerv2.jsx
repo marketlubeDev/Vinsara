@@ -1,42 +1,52 @@
-import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
-import { useProducts } from '../../../hooks/queries/products';
+import React, { useState } from "react";
+import { Link } from "react-router-dom";
+import { useProducts } from "../../../hooks/queries/products";
 // Import Swiper React components
-import { Swiper, SwiperSlide } from 'swiper/react';
+import { Swiper, SwiperSlide } from "swiper/react";
 // Import Swiper styles
-import 'swiper/css';
-import 'swiper/css/pagination';
-import 'swiper/css/autoplay';
+import "swiper/css";
+import "swiper/css/pagination";
+import "swiper/css/autoplay";
 // Import required modules
-import { Autoplay } from 'swiper/modules';
+import { Autoplay } from "swiper/modules";
 
-import {
-    FiArrowRight as ViewAllIcon,
-  } from "react-icons/fi";
-import LoadingSpinner from '../../../components/LoadingSpinner';
-import { useNavigate } from 'react-router-dom';
+import { FiArrowRight as ViewAllIcon } from "react-icons/fi";
+import LoadingSpinner from "../../../components/LoadingSpinner";
+import { useNavigate } from "react-router-dom";
 
 function BestSellerv2() {
   const [activeIndex, setActiveIndex] = useState(0);
   const navigate = useNavigate();
   const { data, isLoading, error } = useProducts({
-    labelId: '68723066667a8920874a83ee',
+    labelId: "68723066667a8920874a83ee",
   });
 
-  if (isLoading) return <div><LoadingSpinner /></div>;
+  if (isLoading)
+    return (
+      <div>
+        <LoadingSpinner />
+      </div>
+    );
   if (error) return <div>Error loading products</div>;
 
   const products = data?.data?.products ?? [];
 
-  const formatPrice = p =>
-    new Intl.NumberFormat('en-IN', { style: 'currency', currency: 'INR', maximumFractionDigits: 0 }).format(p);
+  const formatPrice = (p) =>
+    new Intl.NumberFormat("en-IN", {
+      style: "currency",
+      currency: "INR",
+      maximumFractionDigits: 0,
+    }).format(p);
 
   const discount = (price, mrp) => Math.round(((mrp - price) / mrp) * 100);
 
   const handleViewAll = () => {
     navigate("/products", {
       state: {
-        selectedLabel:{ _id: '68723066667a8920874a83ee', name: 'Best Sellers' }
+        selectedLabel: {
+          _id: "68723066667a8920874a83ee",
+          name: "Best Sellers",
+        },
       },
     });
   };
@@ -46,10 +56,12 @@ function BestSellerv2() {
       <div className="bestseller_container">
         {/* ─── Header ────────────────────────────────────────────────────── */}
         <header className="bestseller_header">
-          <h3>Best <span style={{color: '#ddc062'}}>Sellers</span></h3> 
+          <h3>
+            Best <span style={{ color: "#ddc062" }}>Sellers</span>
+          </h3>
           <p className="view-all desktop-view-all" onClick={handleViewAll}>
-          View All <ViewAllIcon />
-        </p>
+            View All <ViewAllIcon />
+          </p>
         </header>
 
         {/* ─── Card rail ────────────────────────────────────────────────── */}
@@ -58,7 +70,7 @@ function BestSellerv2() {
             autoplay={{
               delay: 2000,
               disableOnInteraction: false,
-              pauseOnMouseEnter: true
+              pauseOnMouseEnter: true,
             }}
             loop={true}
             speed={2000}
@@ -68,12 +80,20 @@ function BestSellerv2() {
             className="bestseller_cards"
             breakpoints={{
               768: {
-                slidesPerView: 2.5,
-                spaceBetween: 20
-              }
+                slidesPerView: 2,
+                spaceBetween: 20,
+              },
+              1024: {
+                slidesPerView: 2.2,
+                spaceBetween: 20,
+              },
+              1280: {
+                slidesPerView: 3,
+                spaceBetween: 20,
+              },
             }}
           >
-            {products.map(p => (
+            {products.map((p) => (
               <SwiperSlide key={p._id}>
                 <div className="bestseller_card">
                   <div className="bestseller_card-image">
@@ -84,12 +104,22 @@ function BestSellerv2() {
                     <h4 className="product-name">{p.name}</h4>
 
                     <div className="price-container">
-                      <span className="current-price">{formatPrice(p.offerPrice)}</span>
-                      <span className="original-price">{formatPrice(p.price)}</span>
-                      <span className="discount-tag">{discount(p.offerPrice, p.price)}% off</span>
+                      <span className="current-price">
+                        {formatPrice(p.offerPrice)}
+                      </span>
+                      <span className="original-price">
+                        {formatPrice(p.price)}
+                      </span>
+                      <span className="discount-tag">
+                        {discount(p.offerPrice, p.price)}% off
+                      </span>
                     </div>
 
-                    <button type="button" className="buy-now-btn" onClick={() => navigate(`/products/${p._id}`)}>
+                    <button
+                      type="button"
+                      className="buy-now-btn"
+                      onClick={() => navigate(`/products/${p._id}`)}
+                    >
                       Buy Now
                     </button>
                   </div>
@@ -101,14 +131,14 @@ function BestSellerv2() {
             {products.map((_, index) => (
               <span
                 key={index}
-                className={`dot ${index === activeIndex ? 'active' : ''}`}
+                className={`dot ${index === activeIndex ? "active" : ""}`}
               />
             ))}
           </div>
           <div style={{ display: "flex", justifyContent: "center" }}>
-              <p className="mobile-view-all-bestseller" onClick={handleViewAll}>
-                View All 
-              </p>
+            <p className="mobile-view-all-bestseller" onClick={handleViewAll}>
+              View All
+            </p>
           </div>
         </div>
       </div>

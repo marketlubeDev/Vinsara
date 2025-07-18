@@ -29,7 +29,7 @@ const Sales = ({ role }) => {
   const convertToCSV = (data) => {
     const headers = [
       "Product Name",
-      "Store",
+      "Category",
       "Brand",
       "Price",
       "Offer Price",
@@ -41,7 +41,7 @@ const Sales = ({ role }) => {
 
     const rows = data.map((product) => [
       product.name,
-      product.store?.store_name || "N/A",
+      product?.category?.name || "N/A",
       product.brand?.name || "N/A",
       product.price || 0,
       product.offerPrice || 0,
@@ -160,7 +160,7 @@ const Sales = ({ role }) => {
   return (
     <>
       <PageHeader content="Sales" marginBottom="mb-0" />
-      <div className="bg-white p-4 shadow flex gap-2">
+      {/* <div className="bg-white p-4 shadow flex gap-2">
         <div className="text-sm text-gray-600 space-y-1">
           <select
             className="border border-gray-300 rounded-md px-4 py-2 w-60"
@@ -205,7 +205,7 @@ const Sales = ({ role }) => {
             {loading ? "Exporting..." : "Export sheet"}
           </button>
         </div>
-      </div>
+      </div> */}
 
       {/* Sales Table Section */}
       <div className="p-4">
@@ -228,8 +228,7 @@ const Sales = ({ role }) => {
               <thead className="bg-green-50">
                 <tr>
                   <th className="p-2">Product Name</th>
-                  <th className="p-2">Store</th>
-                  <th className="p-2">Brand</th>
+                  <th className="p-2">Category</th>
                   <th className="p-2">Price</th>
                   <th className="p-2">Offer Price</th>
                   <th className="p-2">Gross Price</th>
@@ -266,9 +265,9 @@ const Sales = ({ role }) => {
                         )}
                       </td>
                       <td className="p-2">
-                        {product.store?.store_name || "N/A"}
+                        {product?.category?.name || "N/A"}
                       </td>
-                      <td className="p-2">{product.brand?.name || "N/A"}</td>
+
                       <td className="p-2">
                         ₹ {product.price?.toLocaleString()}
                       </td>

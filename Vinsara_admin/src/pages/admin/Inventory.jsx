@@ -30,7 +30,7 @@ const Inventory = ({ role }) => {
   const convertToCSV = (data) => {
     const headers = [
       "Product Name",
-      "Store",
+      "Category",
       "Price",
       "Gross Price",
       "SKU",
@@ -40,7 +40,7 @@ const Inventory = ({ role }) => {
 
     const rows = data.map((product) => [
       product.name,
-      product.store?.store_name || "N/A",
+      product?.category?.name || "N/A",
       product.price || 0,
       product.grossPrice || 0,
       product.sku || "N/A",
@@ -160,7 +160,7 @@ const Inventory = ({ role }) => {
     <>
       <PageHeader content="Inventory" marginBottom="mb-0" />
       <div className="bg-white p-4 shadow flex gap-2">
-        <div className="text-sm text-gray-600 space-y-1">
+        {/* <div className="text-sm text-gray-600 space-y-1">
           <select
             className="border border-gray-300 rounded-md px-4 py-2 w-60"
             value={selectedStore}
@@ -179,8 +179,8 @@ const Inventory = ({ role }) => {
                 </option>
               ))}
           </select>
-        </div>
-        <div className="text-sm text-gray-600 space-y-1">
+        </div> */}
+        {/* <div className="text-sm text-gray-600 space-y-1">
           <select
             className="border border-gray-300 rounded-md px-4 py-2 w-60"
             value={selectedBrand}
@@ -193,9 +193,9 @@ const Inventory = ({ role }) => {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
 
-        <div className="text-sm text-gray-600 space-y-1">
+        {/* <div className="text-sm text-gray-600 space-y-1">
           <select
             className="border border-gray-300 rounded-md px-4 py-2 w-60"
             value={selectedCategory}
@@ -208,7 +208,7 @@ const Inventory = ({ role }) => {
               </option>
             ))}
           </select>
-        </div>
+        </div> */}
         <div className="text-sm text-gray-600 space-y-1 ml-auto">
           <button
             className="bg-green-500 text-white px-4 py-2 rounded-md flex gap-1 items-center justify-center text-md"
@@ -242,7 +242,7 @@ const Inventory = ({ role }) => {
               <thead className="bg-green-50">
                 <tr>
                   <th className="p-2">Product Name</th>
-                  <th className="p-2">Store</th>
+                  <th className="p-2">Category</th>
                   <th className="p-2">Price</th>
                   <th className="p-2">Gross Price</th>
                   <th className="p-2">SKU</th>
@@ -269,7 +269,7 @@ const Inventory = ({ role }) => {
                         {product.name.length > 30 && "..."}
                       </td>
                       <td className="p-2">
-                        {product.store?.store_name || "N/A"}
+                        {product?.category?.name || "N/A"}
                       </td>
                       <td className="p-2">
                         ₹ {product.price?.toLocaleString()}

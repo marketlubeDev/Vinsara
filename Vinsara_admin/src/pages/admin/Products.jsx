@@ -86,7 +86,9 @@ function Products({ role }) {
     };
     fetchAdminUtilities();
   }, []);
+
   useEffect(() => {
+    console.log(searchKeyword, "searchKeyword>>");
     let filter = {};
     if (selectedStore) {
       filter.store = selectedStore;
@@ -107,10 +109,9 @@ function Products({ role }) {
       filter.labelId = selectedLabel;
     }
     if (searchKeyword) {
-      performSearch(searchKeyword, currentPage, filter);
-    } else {
-      fetchProducts(currentPage, filter);
+      filter.search = searchKeyword;
     }
+    fetchProducts(currentPage, filter);
   }, [
     currentPage,
     pageRender,
@@ -121,6 +122,7 @@ function Products({ role }) {
     selectedActiveStatus,
     selectedSubcategory,
     selectedLabel,
+    searchKeyword,
   ]);
 
   const fetchProducts = async (page, filter) => {
@@ -138,58 +140,52 @@ function Products({ role }) {
   };
 
   // Debounced search function
-  const debouncedSearch = useCallback(
-    debounce(async (keyword) => {
-      if (!keyword.trim()) {
-        fetchProducts(currentPage);
-        return;
-      }
+  // const debouncedSearchProducts = useCallback(
+  //   debounce(async (keyword) => {
+  //     if (!keyword.trim()) {
+  //       fetchProducts(currentPage);
+  //       return;
+  //     }
 
-      try {
-        setIsLoading(true);
-        const res = await searchProducts({
-          keyword,
-          page: currentPage,
-          limit: 10,
-        });
-        setProducts(res?.data?.data?.products);
-        setIsProductSelected(false);
-        setSelectedProducts([]);
-        setTotalPages(res?.data?.data?.totalPages);
-      } catch (err) {
-        toast.error("Failed to search products");
-      } finally {
-        setIsLoading(false);
-      }
-    }, 1000),
-    [currentPage]
-  );
+  //     try {
+  //       setIsLoading(true);
+  //       const res = await fetchProducts(currentPage, {
+  //         search: keyword,
+  //       });
+  //     } catch (err) {
+  //       toast.error("Failed to search products");
+  //     } finally {
+  //       setIsLoading(false);
+  //     }
+  //   }, 1000),
+  //   [currentPage]
+  // );
 
   // Handle search input changes
   const handleSearchInput = (e) => {
     const value = e.target.value;
     setSearchKeyword(value);
     setCurrentPage(1); // Reset to first page on new search
-    debouncedSearch(value);
+    // debouncedSearch(value);
   };
 
   // Perform search with pagination
-  const performSearch = async (keyword, page) => {
-    try {
-      setIsLoading(true);
-      const res = await searchProducts({
-        keyword,
-        page,
-        limit: pageSize,
-      });
-      setProducts(res?.data?.data?.products);
-      setTotalPages(res?.data?.data?.totalPages);
-    } catch (err) {
-      toast.error("Failed to search products");
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  // const performSearch = async (keyword, page) => {
+  //   try {
+  //     setIsLoading(true);
+  //     const res = await searchProducts({
+  //       keyword,
+  //       page,
+  //       limit: pageSize,
+  //     });
+  //     setProducts(res?.data?.data?.products);
+  //     setTotalPages(res?.data?.data?.totalPages);
+  //   } catch (err) {
+  //     toast.error("Failed to search products");
+  //   } finally {
+  //     setIsLoading(false);
+  //   }
+  // };
 
   const handlePageChange = (page) => {
     setCurrentPage(page);
@@ -223,11 +219,11 @@ function Products({ role }) {
   // };
 
   // Cleanup debounce on component unmount
-  useEffect(() => {
-    return () => {
-      debouncedSearch.cancel();
-    };
-  }, [debouncedSearch]);
+  // useEffect(() => {
+  //   return () => {
+  //     debouncedSearchProducts.cancel();
+  //   };
+  // }, [debouncedSearchProducts]);
 
   const clearSelectedProducts = () => {
     setSelectedProducts([]);
@@ -238,7 +234,6 @@ function Products({ role }) {
     <div className="flex flex-col min-h-screen bg-gray-100 relative">
       <PageHeader content="Products" marginBottom="mb-0" />
       <div className="bg-white p-4 shadow flex gap-2 flex-wrap">
-  
         <div className="text-sm text-gray-600 space-y-1">
           <select
             value={selectedCategory}

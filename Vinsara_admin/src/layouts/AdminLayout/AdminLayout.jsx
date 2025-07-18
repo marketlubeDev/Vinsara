@@ -18,14 +18,14 @@ function AdminLayout() {
     // { name: "Stores", path: "store" },
     { name: "Categories", path: "category" },
     { name: "SubCategories", path: "subcategory" },
-    { name: "Brands", path: "brand" },
+    // { name: "Brands", path: "brand" },
     { name: "Labels", path: "label" },
     // { name: "Customers", path: "customer" },
     { name: "Banners", path: "banner" },
     { name: "Banners With Links", path: "banner-with-link" },
     { name: "Active Offers", path: "active-offer" },
-    // { name: "Sales", path: "sales" },
-    // { name: "Feedbacks", path: "feedback" },
+    { name: "Sales", path: "sales" },
+    { name: "Feedbacks", path: "feedback" },
     { name: "Inventory", path: "inventory" },
   ];
   const navigate = useNavigate();

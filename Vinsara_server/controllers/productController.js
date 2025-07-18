@@ -26,11 +26,14 @@ const addProduct = catchAsync(async (req, res, next) => {
   } = req.body;
 
   if (variantsArray && variantsArray.length > 0) {
-    const allSkus = variantsArray.map(v => v.sku);
-    const existingVariants = await Variant.find({ sku: { $in: allSkus }, isDeleted: { $ne: true } });
+    const allSkus = variantsArray.map((v) => v.sku);
+    const existingVariants = await Variant.find({
+      sku: { $in: allSkus },
+      isDeleted: { $ne: true },
+    });
 
     if (existingVariants.length > 0) {
-      const duplicateSkus = existingVariants.map(v => v.sku).join(", ");
+      const duplicateSkus = existingVariants.map((v) => v.sku).join(", ");
       return next(
         new AppError(`Duplicate SKU(s) found: ${duplicateSkus}`, 400)
       );
@@ -60,16 +63,26 @@ const addProduct = catchAsync(async (req, res, next) => {
 
   // Upload images for each variant
   for (const [variantIndex, files] of Object.entries(variantFiles)) {
-    const filteredFiles = files.filter(file => file); // Remove any undefined entries
+    const filteredFiles = files.filter((file) => file); // Remove any undefined entries
     if (filteredFiles.length > 0) {
       try {
         const imageUrls = await uploadMultipleToS3(filteredFiles, {
-          folder: `Vinsara/products/${name.toLowerCase().replace(/[^a-z0-9]/g, '-')}/variant-${variantIndex}`
+          folder: `Vinsara/products/${name
+            .toLowerCase()
+            .replace(/[^a-z0-9]/g, "-")}/variant-${variantIndex}`,
         });
         variantImagesMap[variantIndex] = imageUrls;
       } catch (error) {
-        console.error(`Error uploading images for variant ${variantIndex}:`, error);
-        return next(new AppError(`Failed to upload images for variant ${parseInt(variantIndex) + 1}`, 500));
+        console.error(
+          `Error uploading images for variant ${variantIndex}:`,
+          error
+        );
+        return next(
+          new AppError(
+            `Failed to upload images for variant ${parseInt(variantIndex) + 1}`,
+            500
+          )
+        );
       }
     }
   }
@@ -150,7 +163,6 @@ const listProducts = catchAsync(async (req, res, next) => {
     activeStatus,
   } = req.query;
 
-
   page = parseInt(page) || 1;
   limit = parseInt(limit) || 10;
   const skip = (page - 1) * limit;
@@ -170,7 +182,6 @@ const listProducts = catchAsync(async (req, res, next) => {
     filter.offer = new mongoose.Types.ObjectId(offerId);
   }
 
-
   if (categoryId && categoryId !== "All Categories") {
     filter.category = new mongoose.Types.ObjectId(categoryId);
   }
@@ -178,7 +189,6 @@ const listProducts = catchAsync(async (req, res, next) => {
   if (subcategoryId && subcategoryId !== "All Subcategories") {
     filter.subcategory = new mongoose.Types.ObjectId(subcategoryId);
   }
-
 
   if (search) {
     filter.$or = [
@@ -429,8 +439,7 @@ const getProductDetails = catchAsync(async (req, res, next) => {
     .populate("subcategory")
     .populate("createdBy", "username email role")
     .populate("variants")
-    .populate("label")
-  
+    .populate("label");
 
   if (!productDetails) {
     return next(new AppError("Product not found", 404));
@@ -452,21 +461,19 @@ const updateProduct = catchAsync(async (req, res, next) => {
     try {
       await Promise.all(
         updateData.variants.map(async (variant) => {
-          const queryConditions = [
-            { sku: variant.sku },
-          ];
+          const queryConditions = [{ sku: variant.sku }];
 
           // Exclude the current variant from the check
           const skuExists = await Variant.findOne({
             $or: queryConditions,
-            _id: { $ne: variant._id }, 
+            _id: { $ne: variant._id },
             isDeleted: { $ne: true },
           });
 
-          if (skuExists) { 
+          if (skuExists) {
             return Promise.reject(
-                `${variant?.attributes?.title}'s SKU ${variant.sku} already exists`
-              );
+              `${variant?.attributes?.title}'s SKU ${variant.sku} already exists`
+            );
           }
         })
       );
@@ -510,22 +517,35 @@ const updateProduct = catchAsync(async (req, res, next) => {
 
     // Upload images for each variant
     for (const [variantIndex, files] of Object.entries(variantFiles)) {
-      const filteredFiles = files.filter(file => file); // Remove any undefined entries
+      const filteredFiles = files.filter((file) => file); // Remove any undefined entries
       if (filteredFiles.length > 0) {
         try {
           const imageUrls = await uploadMultipleToS3(filteredFiles, {
-            folder: `Vinsara/products/${product.name.toLowerCase().replace(/[^a-z0-9]/g, '-')}/variant-${variantIndex}`
+            folder: `Vinsara/products/${product.name
+              .toLowerCase()
+              .replace(/[^a-z0-9]/g, "-")}/variant-${variantIndex}`,
           });
-          
+
           // Merge new URLs with existing ones at the correct positions
           files.forEach((file, i) => {
             if (file) {
-              variantImagesMap[variantIndex][i] = imageUrls[filteredFiles.indexOf(file)];
+              variantImagesMap[variantIndex][i] =
+                imageUrls[filteredFiles.indexOf(file)];
             }
           });
         } catch (error) {
-          console.error(`Error uploading images for variant ${variantIndex}:`, error);
-          return next(new AppError(`Failed to upload images for variant ${parseInt(variantIndex) + 1}`, 500));
+          console.error(
+            `Error uploading images for variant ${variantIndex}:`,
+            error
+          );
+          return next(
+            new AppError(
+              `Failed to upload images for variant ${
+                parseInt(variantIndex) + 1
+              }`,
+              500
+            )
+          );
         }
       }
     }
@@ -552,7 +572,7 @@ const updateProduct = catchAsync(async (req, res, next) => {
           });
         } else {
           variant.product = productId;
-      
+
           if (variantImagesMap[index]) {
             variant.images = variantImagesMap[index].filter((img) => img);
           }
@@ -784,9 +804,11 @@ const updateVariant = catchAsync(async (req, res, next) => {
     return next(new AppError("Product not found", 404));
   }
 
-  product.variants = product.variants.filter((id) => id.toString() !== variantId);
+  product.variants = product.variants.filter(
+    (id) => id.toString() !== variantId
+  );
 
-  await product.save(); 
+  await product.save();
 
   const variant = await Variant.findByIdAndUpdate(variantId, {
     isDeleted: true,

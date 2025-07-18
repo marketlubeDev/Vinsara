@@ -71,10 +71,6 @@ export const router = createBrowserRouter([
         element: <Subcategories />,
       },
       {
-        path: "brand",
-        element: <Brand />,
-      },
-      {
         path: "label",
         element: <Label />,
       },
@@ -111,19 +107,18 @@ export const router = createBrowserRouter([
       //   path: "storeinfo/:id",
       //   element: <Storeinfo />,
       // },
-      // {
-      //   path: "sales",
-      //   element: <Sales role={"admin"} />,
-      // },
-      // {
-      //   path: "inventory",
-      //   element: <Inventory role={"admin"} />,
-      // },
+      {
+        path: "sales",
+        element: <Sales role={"admin"} />,
+      },
+      {
+        path: "inventory",
+        element: <Inventory role={"admin"} />,
+      },
       {
         path: "feedback",
         element: <Feedback />,
-      }
+      },
     ],
   },
-
 ]);

@@ -42,8 +42,8 @@ const groupLabel = catchAsync(async (req, res, next) => {
     {
       $match: {
         isDeleted: false,
-        activeStatus: true
-      }
+        activeStatus: true,
+      },
     },
 
     {
@@ -51,60 +51,60 @@ const groupLabel = catchAsync(async (req, res, next) => {
         from: "labels",
         localField: "label",
         foreignField: "_id",
-        as: "label"
-      }
+        as: "label",
+      },
     },
     {
       $unwind: {
         path: "$label",
-        preserveNullAndEmptyArrays: true
-      }
+        preserveNullAndEmptyArrays: true,
+      },
     },
     {
       $lookup: {
         from: "variants",
         localField: "variants",
         foreignField: "_id",
-        as: "variantsData"
-      }
+        as: "variantsData",
+      },
     },
     {
       $lookup: {
         from: "stores",
         localField: "store",
         foreignField: "_id",
-        as: "store"
-      }
+        as: "store",
+      },
     },
     {
       $lookup: {
         from: "brands",
         localField: "brand",
         foreignField: "_id",
-        as: "brand"
-      }
+        as: "brand",
+      },
     },
     {
       $lookup: {
         from: "categories",
         localField: "category",
         foreignField: "_id",
-        as: "category"
-      }
+        as: "category",
+      },
     },
     {
       $lookup: {
         from: "offers",
         localField: "offer",
         foreignField: "_id",
-        as: "offer"
-      }
+        as: "offer",
+      },
     },
     {
       $group: {
         _id: "$label.name",
         labelId: { $first: "$label._id" },
-        createdAt:{$first:"$label.createdAt"},
+        createdAt: { $first: "$label.createdAt" },
         products: {
           $push: {
             _id: "$_id",
@@ -119,57 +119,62 @@ const groupLabel = catchAsync(async (req, res, next) => {
             offer: { $arrayElemAt: ["$offer", 0] },
             images: "$images",
             activeStatus: "$activeStatus",
-            isDeleted: "$isDeleted"
-          }
+            isDeleted: "$isDeleted",
+          },
         },
-      }
+      },
     },
 
-
-  
     {
       $project: {
         label: {
           name: "$_id",
           id: "$labelId",
-          createdAt: "$createdAt"
+          createdAt: "$createdAt",
         },
         products: 1,
-        _id: 0
-      }
-    }
+        _id: 0,
+      },
+    },
   ]);
 
-
   // Format the products using formatProductResponse
-  const formattedResult = result.map(group => ({
+  const formattedResult = result.map((group) => ({
     label: group.label,
-    products: group.products.map(product => formatProductResponse(product))
+    products: group.products.map((product) => formatProductResponse(product)),
   }));
 
-  formattedResult.sort((a, b) => {
+  // Filter out the specific label with ID 68723066667a8920874a83ee
+  const filteredResult = formattedResult.filter(
+    (group) => group.label.id.toString() !== "68723066667a8920874a83ee"
+  );
+
+  filteredResult.sort((a, b) => {
     const dateDiff = new Date(b.label.createdAt) - new Date(a.label.createdAt);
     if (dateDiff !== 0) return dateDiff;
     return a.label.name.localeCompare(b.label.name);
   });
+
   res.status(200).json({
-    status: 'success',
-    data: formattedResult
+    status: "success",
+    data: filteredResult,
   });
 });
-
 
 const deleteLabel = catchAsync(async (req, res, next) => {
   const { id } = req.params;
 
-
-  if(id == "67e10f6c5b3d36dda0b0c4cc"){
-    return next(new AppError("You are not authorized to delete this label", 403));
-  } 
+  if (id == "67e10f6c5b3d36dda0b0c4cc") {
+    return next(
+      new AppError("You are not authorized to delete this label", 403)
+    );
+  }
 
   const productCount = await ProductModel.countDocuments({ label: id });
   if (productCount > 0) {
-    return res.status(400).json({ message: "Label has products, cannot delete" });
+    return res
+      .status(400)
+      .json({ message: "Label has products, cannot delete" });
   }
   await LabelModel.findByIdAndDelete(id);
   res.status(200).json({ message: "Label deleted successfully" });
