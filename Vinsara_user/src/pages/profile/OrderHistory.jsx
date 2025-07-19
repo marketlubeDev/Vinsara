@@ -12,7 +12,6 @@ const OrderHistory = () => {
   const orders = data?.orders || [];
 
   const handleOrderStatusOpen = (order) => {
-    console.log(order, "order");
     setIsOrderStatusOpen(true);
 
     setSelectedOrder(order);

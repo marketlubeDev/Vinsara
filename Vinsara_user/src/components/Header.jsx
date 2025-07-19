@@ -55,10 +55,8 @@ export default function Header() {
 
   const handleCartNavigation = () => {
     const token = localStorage.getItem("user-auth-token");
-    console.log("Cart navigation - token check:", { token, isLoggedIn });
 
     if (!token || token === "undefined" || token === null || token === "") {
-      console.log("No token found, storing redirect path for cart");
       // // Store redirect path before navigation using utility function
       storeRedirectPath("/cart");
       navigate("/login");

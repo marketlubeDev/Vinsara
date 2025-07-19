@@ -10,7 +10,6 @@ const OrderStatus = ({ isOpen, onClose, order }) => {
   const { mutate: updateOrderStatus } = useUpdateOrderStatus();
 
   const handleCancelOrder = (orderId) => {
-    console.log(`Cancel entire order with ID: ${orderId}`);
     setIsConfirmationModalOpen(true);
     setOrderId(orderId);
   };

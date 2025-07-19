@@ -12,17 +12,13 @@ function ProtectedRoute({ children }) {
 
   useEffect(() => {
     const token = localStorage.getItem("user-auth-token");
-    console.log("ProtectedRoute - Token check:", {
-      token,
-      path: location.pathname + location.search,
-    });
+
 
     if (!token || token === "undefined" || token === null || token === "") {
       const redirectPath = location.pathname + location.search;
 
       // Use utility function to store path
       const stored = storeRedirectPath(redirectPath);
-      console.log("Path storage result:", stored);
 
       navigate("/login");
     }

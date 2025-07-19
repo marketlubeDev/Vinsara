@@ -39,8 +39,6 @@ function Homepage() {
         isMobile && banner?.mobileImage ? banner?.mobileImage : banner?.image,
     }));
 
-  console.log(offerBanner, "Offer Banner>>");
-  console.log(groupLabels, "Group Labels>>");
 
   return (
     <div>
