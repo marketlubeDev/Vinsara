@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useRef, useState, useEffect } from "react";
 import {
   FiArrowLeft,
   FiArrowRight,
@@ -11,6 +11,8 @@ import LoadingSpinner from "../../../components/LoadingSpinner";
 
 function Trending() {
   const scrollContainerRef = useRef(null);
+  const [isMobile, setIsMobile] = useState(false);
+  
   const {
     data: response,
     isLoading,
@@ -19,6 +21,17 @@ function Trending() {
     labelId: "67e6441c1befacf37ff60151",
   });
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const checkScreenSize = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    
+    checkScreenSize();
+    window.addEventListener('resize', checkScreenSize);
+    
+    return () => window.removeEventListener('resize', checkScreenSize);
+  }, []);
 
   if (isLoading) return <LoadingSpinner />;
   if (error) return <div>Error: {error.message}</div>;
@@ -58,8 +71,8 @@ function Trending() {
   return (
     <section
       className="trending-container"
-      data-aos="fade-up"
-      data-aos-duration="1000"
+      data-aos={isMobile ? "" : "fade-up"}
+      data-aos-duration={isMobile ? "0" : "1000"}
     >
       <div className="trending-header">
         <div className="trending-content">
