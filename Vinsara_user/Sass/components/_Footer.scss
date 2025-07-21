@@ -1,7 +1,7 @@
 @use "../abstract/variables" as var;
 
 .footer {
-  background: #13131D;
+  background: #13131d;
   padding: 3rem 3rem 3rem 3rem;
 
   // Feedback Section (formerly Newsletter)
@@ -23,7 +23,7 @@
         flex-direction: column;
         gap: 0.5rem;
         color: #fff;
-        
+
         h2 {
           font-size: 1.75rem;
           font-weight: 600;
@@ -65,7 +65,8 @@
           }
         }
 
-        input, textarea {
+        input,
+        textarea {
           width: 100%;
           padding: 0.875rem 0.875rem;
           border: none;
@@ -74,7 +75,7 @@
           font-family: inherit;
           background: transparent;
           color: #fff;
-          background-color: #21212B;
+          background-color: #21212b;
 
           @media (max-width: 768px) {
             padding: 0.75rem 0.75rem;
@@ -197,7 +198,7 @@
         @media (max-width: 768px) {
           width: 6rem;
         }
-        
+
         @media (max-width: 480px) {
           display: none;
         }
@@ -216,7 +217,7 @@
 
       @media (max-width: 480px) {
         gap: 1rem;
-        flex-direction: column;
+        // flex-direction: column;
         align-items: center;
       }
 
@@ -392,13 +393,13 @@
 
   @media (max-width: 768px) {
     padding: 2rem 1rem;
-    
+
     .newsletter {
       padding: 0 1rem;
 
       &-content {
         gap: 1.5rem;
-        
+
         h2,
         h3 {
           font-size: 1.25rem;
@@ -446,8 +447,8 @@
       }
 
       .footer-navigation {
-        flex-direction: column;
         gap: 0.5rem;
+        margin-top: 0.5rem; 
       }
 
       .footer-divider-main {
@@ -458,7 +459,7 @@
       .footer-address {
         font-size: 0.7rem;
         padding: 0 0.25rem;
-        
+
         p {
           margin: 0.15rem 0;
         }

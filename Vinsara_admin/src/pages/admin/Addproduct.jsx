@@ -87,6 +87,11 @@ function Addproduct() {
   }, []);
 
   useEffect(() => {
+    console.log(showSubcategory, "showSubcategory>>");
+    console.log(productData.subcategory, "productData>>");
+  }, [showSubcategory]);
+
+  useEffect(() => {
     if (productId) {
       setIsEditMode(true);
       setIsLoadingProduct(true);
@@ -98,7 +103,7 @@ function Addproduct() {
             name: prod.name || "",
             // brand: prod.brand?._id || "",
             category: prod.category?._id || "",
-            subcategory: prod.subcategory?._id || "",
+            subcategory: prod.subcategory || "",
             store: prod.store?._id || "",
             label: prod.label?._id || "",
             activeStatus: prod.activeStatus ?? true,
@@ -463,7 +468,7 @@ function Addproduct() {
                 getError("subcategory") ? "border-red-500" : ""
               } ${isLoadingProduct ? "bg-gray-100 cursor-not-allowed" : ""}`}
               name="subcategory"
-              value={productData.subcategory}
+              value={productData?.subcategory || ""}
               onChange={handleProductChange}
               disabled={isLoadingProduct}
             >

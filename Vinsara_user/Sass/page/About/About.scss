@@ -1,0 +1,73 @@
+@use "../../abstract/variables" as var;
+.about-page {
+  max-width: 900px;
+  margin: 2rem auto;
+  background: #fff;
+  border-radius: 16px;
+  //   box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  padding: 2.5rem 2rem 2rem 2rem;
+  font-family: inherit;
+}
+
+.about-hero {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  h1 {
+    font-size: 2.5rem;
+    font-weight: 700;
+    color: var.$color-primary;
+    margin-bottom: 0.5rem;
+  }
+  .about-tagline {
+    font-size: 1.25rem;
+    color: #555;
+    font-weight: 500;
+    margin-bottom: 0;
+  }
+}
+
+.about-content {
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-bottom: 1rem;
+    color: #222;
+  }
+  p {
+    font-size: 1.1rem;
+    color: #444;
+    margin-bottom: 1.5rem;
+    line-height: 1.7;
+  }
+  .about-values {
+    list-style: none;
+    padding: 0;
+    margin: 0 0 1.5rem 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1.5rem;
+    li {
+      background: var.$color-primary;
+      border-radius: 8px;
+      padding: 1rem 1.5rem;
+      font-size: 1rem;
+      color: #222;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+      flex: 1 1 220px;
+      min-width: 180px;
+      text-align: center;
+    }
+  }
+}
+
+@media (max-width: 600px) {
+  .about-page {
+    padding: 1rem 0.5rem;
+  }
+  .about-hero h1 {
+    font-size: 2rem;
+  }
+  .about-content h2 {
+    font-size: 1.2rem;
+  }
+}
