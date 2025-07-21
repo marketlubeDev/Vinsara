@@ -327,6 +327,18 @@
   }
 }
 
+@media (min-width: 768px) and (max-width: 1200px) {
+  .header-search {
+    max-width: 500px;
+    flex: 1;
+    margin-left: 2rem;
+    margin-right: 0;
+  }
+  .header-logo {
+    flex-shrink: 0;
+  }
+}
+
 .user-menu-container {
   position: relative;
 }
@@ -550,4 +562,9 @@
       margin-left: 0;
     }
   }
+}
+
+.header-actions-item .icon:last-child {
+  position: relative;
+  top: 2px; // adjust this value as needed (try 1px, 2px, or -1px)
 }

@@ -224,12 +224,20 @@ function Footer() {
             reserved
           </span>
           <div className="separator"></div>
-          <a href="#" className="social-link">
+          <a href="https://www.instagram.com/vinsara.in/" className="social-link">
             <FaInstagram />
+          </a>
+          <a
+            href="https://www.facebook.com/profile.php?id=61578314360159"
+            className="social-link"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            <FaFacebookF />
           </a>
           <div className="separator"></div>
           <span className="powered-by">
-            Powered by <span className="brand-highlight">Marketlube</span>
+            Powered by <a href="https://www.instagram.com/marketlube/?hl=en" className="brand-highlight" target="_blank" rel="noopener noreferrer"  style={{textDecoration: "none"}}>Marketlube</a>
           </span>
         </div>
       </div>
