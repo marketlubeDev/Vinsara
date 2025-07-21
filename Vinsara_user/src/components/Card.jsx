@@ -80,29 +80,15 @@ function Card({ product }) {
       </div>
 
       <div className="product-card_content">
-        {/* <span className="category">{category.name}</span> */}
         <h3 className="title">{name || "Product Name"}</h3>
         <div className="price">
           <span className="current-price">₹{offerPrice || 0}</span>
           <span className="original-price">₹{price || 0}</span>
+          {discount && <span className="discount-percentage">({discount} OFF)</span>}
           {stockStatus === "outofstock" && (
             <span className="out-of-stock">Sold Out</span>
           )}
         </div>
-        {/* <div className="rating">
-          {"★".repeat(Math.floor(averageRating))}
-          {"☆".repeat(5 - Math.floor(averageRating))}
-          <span className="rating-number">{averageRating}</span>
-        </div> */}
-        {/* <div className="add-to-cart-wrapper">
-          <button
-            // onClick={() => handleAddToCart("buy")}
-            className="add-to-cart"
-            // disabled={loadingAction !== null}
-          >
-            Add To Cart
-          </button>
-        </div> */}
       </div>
     </div>
   );

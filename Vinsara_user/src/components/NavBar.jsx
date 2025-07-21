@@ -231,12 +231,13 @@ export const NavBar = () => {
                   onClick={() => handleClickSubCategory(item)}
                 >
                   <li>{item.name}</li>
-                  <p>{item.description}</p>
+                  {item.description && <p>{item.description}</p>}
                 </div>
               ))}
             </ul>
           )}
           <div className="view-all-container">
+            <p>Explore {dropdownContent?.parent === "brands" ? "All Brands" : "All Products"}</p>
             <button
               className="view-all-container-button"
               onClick={() => handleNavigateToParent()}
