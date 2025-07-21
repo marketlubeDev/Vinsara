@@ -19,10 +19,12 @@
   @include responsive.respond(phone) {
     padding: 0;
     height: auto;
+    margin-bottom: 0;
   }
   @include responsive.respond(smallPhone) {
     padding: 0;
     height: auto;
+    margin-bottom: 0;
   }
 
   .custom-dots {

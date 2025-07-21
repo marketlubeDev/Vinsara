@@ -104,6 +104,7 @@ export default function Header() {
         <Link
           to="/"
           onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
+          style={{ textDecoration: "none" }}
         >
           <div className="header-logo">
             <img
@@ -111,6 +112,7 @@ export default function Header() {
               alt="logo"
               className="header-logo-img"
             />
+            <span className="header-logo-text">Vinsara</span>
           </div>
         </Link>
 

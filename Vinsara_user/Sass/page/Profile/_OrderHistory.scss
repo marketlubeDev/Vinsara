@@ -91,8 +91,8 @@
           }
 
           img {
-            width: 70px;
-            height: 70px;
+            width: 100px;
+            height: 100px;
             object-fit: cover;
             border-radius: 4px;
           }
@@ -263,7 +263,7 @@
       .table-body {
         .order-row {
           grid-template-columns: 1fr;
-          gap: 1.5rem;
+          gap: 1rem;
           background: white;
           padding: 1.5rem;
           border-radius: 8px;
@@ -273,15 +273,27 @@
           .price-col,
           .total-col,
           .order-id-col,
-          .status-col,
+          
           .action-col {
             position: relative;
-            padding-top: 1.25rem;
+            padding-top: 2.3rem;
 
             &::before {
               content: attr(data-label);
               position: absolute;
-              top: 0;
+              top: 1rem;
+              left: 0;
+              font-size: 0.75rem;
+              color: #666;
+              text-transform: uppercase;
+            }
+          }
+          .status-col{
+            padding-top: 1.25rem;
+            &::before {
+              content: attr(data-label);
+              position: absolute;
+              top: 1rem;
               left: 0;
               font-size: 0.75rem;
               color: #666;

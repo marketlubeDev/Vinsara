@@ -135,7 +135,7 @@ function Footer() {
         <div className="newsletter-content">
           <div className="newsletter-content-text">
             <h2>We Value Your Feedback</h2>
-            <h3>Help Us Serve You Better!</h3>
+            <h3>Help Us To Serve You Better!</h3>
           </div>
           <form
             className="newsletter-content-form"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useUpdateOrderStatus } from "../../hooks/queries/order";
 import ConfirmationModal from "../../components/confirmationModal";
 
@@ -18,6 +18,17 @@ const OrderStatus = ({ isOpen, onClose, order }) => {
     updateOrderStatus(orderId);
     setIsConfirmationModalOpen(false);
   };
+
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = 'hidden';
+    } else {
+      document.body.style.overflow = '';
+    }
+    return () => {
+      document.body.style.overflow = '';
+    };
+  }, [isOpen]);
 
   return (
     <div className="modal-overlay">
