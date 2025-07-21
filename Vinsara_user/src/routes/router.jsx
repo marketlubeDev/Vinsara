@@ -13,6 +13,12 @@ import Cartpage from "../pages/cartPage/cartPage";
 import PaymentSuccess from "../pages/payment/PaymentSuccess";
 import ProtectedRoute from "../components/route/ProtectedRoute";
 import Profile from "../pages/profile/Profile";
+// Legal pages
+import About from "../pages/About/About";
+import Terms from "../pages/Legal/Terms";
+import Privacy from "../pages/Legal/Privacy";
+import Refund from "../pages/Legal/Refund";
+import Contact from "../pages/Legal/Contact";
 
 const error = new Error("Page Not Found", { cause: 404 });
 
@@ -39,9 +45,11 @@ const router = createBrowserRouter([
     children: [
       {
         path: "/login",
-        element: <WithErrorBoundary>
-          <Login />
-        </WithErrorBoundary>
+        element: (
+          <WithErrorBoundary>
+            <Login />
+          </WithErrorBoundary>
+        ),
       },
       {
         path: "/otp",
@@ -75,14 +83,13 @@ const router = createBrowserRouter([
           </WithErrorBoundary>
         ),
       },
-
       {
         path: "/cart",
         element: (
           <WithErrorBoundary>
             <Cartpage />
           </WithErrorBoundary>
-        )
+        ),
       },
       {
         path: "/payment-success",
@@ -90,7 +97,7 @@ const router = createBrowserRouter([
           <WithErrorBoundary>
             <PaymentSuccess />
           </WithErrorBoundary>
-        )
+        ),
       },
       {
         path: "/profile",
@@ -101,7 +108,48 @@ const router = createBrowserRouter([
             </ProtectedRoute>
           </WithErrorBoundary>
         ),
-      }
+      },
+      // Legal/Info pages
+      {
+        path: "/about",
+        element: (
+          <WithErrorBoundary>
+            <About />
+          </WithErrorBoundary>
+        ),
+      },
+      {
+        path: "/terms",
+        element: (
+          <WithErrorBoundary>
+            <Terms />
+          </WithErrorBoundary>
+        ),
+      },
+      {
+        path: "/privacy",
+        element: (
+          <WithErrorBoundary>
+            <Privacy />
+          </WithErrorBoundary>
+        ),
+      },
+      {
+        path: "/refund",
+        element: (
+          <WithErrorBoundary>
+            <Refund />
+          </WithErrorBoundary>
+        ),
+      },
+      {
+        path: "/contact",
+        element: (
+          <WithErrorBoundary>
+            <Contact />
+          </WithErrorBoundary>
+        ),
+      },
     ],
   },
 ]);

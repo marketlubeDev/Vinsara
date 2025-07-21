@@ -37,7 +37,11 @@
 @use "page/BrandPage/BrandListing";
 @use "components/Breadcrumbs";
 @use "layout/Navbar";
-
+@use "page/About/About";
+@use "page/Legal/Terms";
+@use "page/Legal/Privacy";
+@use "page/Legal/Refund";
+@use "page/Legal/Contact";
 @use "page/Homepage/HomePage";
 @use "page/OTP/verification";
 @use "page/Payment/Paymentsuccess";

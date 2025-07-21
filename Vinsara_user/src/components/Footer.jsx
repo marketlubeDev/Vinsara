@@ -5,7 +5,7 @@ import { useCategories } from "../hooks/queries/categories";
 import VinsaraLogo from "../assets/vinsaralogo.svg";
 import { useState } from "react";
 import { useEffect } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, Link } from "react-router-dom";
 import { toast } from "sonner";
 import { useSubmitFeedback } from "../hooks/queries/feedback";
 
@@ -128,6 +128,8 @@ function Footer() {
     setCategories(categoriesData?.envelop?.data);
   }, [categoriesData]);
 
+  const scrollToTop = () => window.scrollTo({ top: 0, behavior: "smooth" });
+
   return (
     <footer className="footer">
       {/* Feedback Section */}
@@ -184,12 +186,21 @@ function Footer() {
 
         {/* Navigation Links */}
         <div className="footer-navigation">
-          {/* <a href="#" className="nav-link">All</a>
-          <a href="#" className="nav-link">Women</a>
-          <a href="#" className="nav-link">Kids</a>
-          <a href="#" className="nav-link">Jewellery</a>
-          <a href="#" className="nav-link">Accessories</a>
-          <a href="#" className="nav-link">Premium</a> */}
+          <Link to="/about" className="nav-link" onClick={scrollToTop}>
+            About Us
+          </Link>
+          <Link to="/terms" className="nav-link" onClick={scrollToTop}>
+            Terms & Conditions
+          </Link>
+          <Link to="/privacy" className="nav-link" onClick={scrollToTop}>
+            Privacy Policy
+          </Link>
+          <Link to="/refund" className="nav-link" onClick={scrollToTop}>
+            Refund Policy
+          </Link>
+          <Link to="/contact" className="nav-link" onClick={scrollToTop}>
+            Contact Us
+          </Link>
         </div>
 
         {/* Divider */}
