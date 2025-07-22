@@ -8200,59 +8200,64 @@ input[required]::placeholder::after {
   text-align: center;
 }
 .legal-content .contact-info-bg {
-  background: linear-gradient(120deg, #fffbe6 60%, #f7faff 100%);
-  border-radius: 18px;
-  box-shadow: 0 4px 32px rgba(230, 184, 0, 0.07);
-  padding: 2.5rem 1.5rem 2rem 1.5rem;
-  max-width: 420px;
-  margin: 0 auto;
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
+  gap: 1.5rem;
+  justify-content: center;
   align-items: center;
+  flex-wrap: wrap;
+  max-width: 800px;
+  margin: 0 auto;
 }
 .legal-content .contact-info-list {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   gap: 1.5rem;
   align-items: center;
+  justify-content: center;
+  flex-wrap: nowrap;
   width: 100%;
 }
 .legal-content .contact-info-item {
   display: flex;
   align-items: center;
-  gap: 1rem;
-  background: rgba(255, 255, 255, 0.7);
-  border-radius: 12px;
-  padding: 1.1rem 2rem;
-  font-size: 1.15rem;
-  color: #222;
-  box-shadow: 0 2px 16px rgba(230, 184, 0, 0.08);
-  min-width: 220px;
-  max-width: 100%;
-  transition: background 0.2s, box-shadow 0.2s, color 0.2s;
+  gap: 0.75rem;
+  background: #ffffff;
+  border-radius: 6px;
+  padding: 1rem;
+  font-size: 0.9rem;
+  color: #555;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  width: 280px;
+  height: 80px;
+  flex-shrink: 0;
+  transition: all 0.15s ease;
+  border: 1px solid #f0f0f0;
 }
 .legal-content .contact-info-item a {
   color: #ddc062;
-  font-weight: 600;
-  text-decoration: underline;
+  font-weight: 400;
+  text-decoration: none;
   word-break: break-all;
-  transition: color 0.2s;
+  transition: color 0.15s;
+}
+.legal-content .contact-info-item a:hover {
+  color: rgb(211.9214659686, 175.1780104712, 56.0785340314);
 }
 .legal-content .contact-info-item:hover {
-  background: #fffbe6;
-  color: #ddc062;
-  box-shadow: 0 4px 24px rgba(230, 184, 0, 0.13);
-}
-.legal-content .contact-info-item:hover a {
-  color: #ddc062;
+  background: #ffffff;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  border-color: #ddd;
 }
 .legal-content .contact-info-item .contact-icon {
-  font-size: 1.7em;
+  font-size: 1.2rem;
   color: #ddc062;
-  background: #fffbe6;
-  border-radius: 50%;
-  padding: 0.3em;
-  box-shadow: 0 2px 8px rgba(230, 184, 0, 0.08);
+  padding: 0.4rem;
+  border-radius: 4px;
+  background: #fafafa;
+  height: auto;
+  width: auto;
 }
 
 @media (max-width: 600px) {

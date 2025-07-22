@@ -28,8 +28,13 @@ const Contact = () => (
     <section className="legal-content contact-content">
       <h2>We're here to help!</h2>
       <p className="contact-description">
-        Have a question, need support, or want to connect with us? Reach out
-        anytime using the details below. Our team is always happy to assist you.
+        Got questions? We've got answers! Whether you're looking for order updates, 
+        product recommendations, or just want to share your experience, our team is 
+        ready to help. We're committed to getting back to you within 24 hours on 
+        business days. Need immediate assistance? Give us a call - we're here for you!
+        Your satisfaction is our top priority, and we love hearing from our customers. 
+        Don't hesitate to reach out - we're excited to help you find exactly what you're 
+        looking for and ensure your shopping experience is nothing short of amazing!
       </p>
       <div className="contact-info-bg">
         <div className="contact-info-list">
@@ -43,15 +48,14 @@ const Contact = () => (
           </div>
           <div className="contact-info-item">
             <FiPhone className="contact-icon" />
-            <span>
-              <a href="tel:+917012617749">+91 70126 17749</a>
-            </span>
-          </div>
-          <div className="contact-info-item">
-            <FiPhone className="contact-icon" />
-            <span>
-              <a href="tel:+919136205709">+91 91362 05709</a>
-            </span>
+            <div>
+              <div>
+                <a href="tel:+917012617749">+91 70126 17749</a>
+              </div>
+              <div>
+                <a href="tel:+919136205709">+91 91362 05709</a>
+              </div>
+            </div>
           </div>
         </div>
       </div>
