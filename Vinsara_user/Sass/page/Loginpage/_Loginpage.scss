@@ -103,6 +103,88 @@
       }
     }
 
+    .divider {
+      display: flex;
+      align-items: center;
+      text-align: center;
+      margin: 24px 0;
+
+      &::before,
+      &::after {
+        content: "";
+        flex: 1;
+        border-bottom: 1px solid #ddd;
+      }
+
+      // &::before {
+      //   margin-right: 12px;
+      // }
+
+      // &::after {
+      //   margin-left: 12px;
+      // }
+
+      span {
+        background: #fff;
+        padding: 0 6px;
+        color: #666;
+        font-size: 14px;
+        z-index: 1;
+      }
+    }
+
+    .google-login-button {
+      width: 100%;
+      padding: 12px;
+      background-color: white;
+      color: #333;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      font-size: 16px;
+      font-weight: 500;
+      cursor: pointer;
+      margin-bottom: 24px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      transition: all 0.2s ease;
+
+      &:hover {
+        background-color: #f8f9fa;
+        border-color: #ccc;
+      }
+
+      &:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .loading-spinner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+
+        .spinner {
+          width: 16px;
+          height: 16px;
+          border: 2px solid #ddd;
+          border-top: 2px solid var.$color-primary;
+          border-radius: 50%;
+          animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+          0% {
+            transform: rotate(0deg);
+          }
+          100% {
+            transform: rotate(360deg);
+          }
+        }
+      }
+    }
+
     .create-account {
       text-align: center;
       border-top: 1px solid #eee;

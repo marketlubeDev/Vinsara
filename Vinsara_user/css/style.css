@@ -6171,6 +6171,70 @@ body.modal-open {
 .login-container .login-card .terms-text a:hover {
   text-decoration: underline;
 }
+.login-container .login-card .divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 24px 0;
+}
+.login-container .login-card .divider::before, .login-container .login-card .divider::after {
+  content: "";
+  flex: 1;
+  border-bottom: 1px solid #ddd;
+}
+.login-container .login-card .divider span {
+  background: #fff;
+  padding: 0 6px;
+  color: #666;
+  font-size: 14px;
+  z-index: 1;
+}
+.login-container .login-card .google-login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: white;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+.login-container .login-card .google-login-button:hover {
+  background-color: #f8f9fa;
+  border-color: #ccc;
+}
+.login-container .login-card .google-login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.login-container .login-card .google-login-button .loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.login-container .login-card .google-login-button .loading-spinner .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid #ddd;
+  border-top: 2px solid #ddc062;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
 .login-container .login-card .create-account {
   text-align: center;
   border-top: 1px solid #eee;
