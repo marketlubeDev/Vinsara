@@ -171,19 +171,25 @@
     }
 
     .title {
-      font-size: 0.95rem;
-      margin-bottom: 0.5rem;
-      font-weight: 400;
-      color: #000000;
+      font-size: 1.1rem;
+      font-weight: 600;
+      color: #000;
       line-height: 1.3;
-      font-family: sans-serif;
+      max-width: 18.75rem;
+      word-wrap: break-word;
+      overflow: hidden;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
       
       @media screen and (max-width: 768px) {
         font-size: 0.9rem;
+        -webkit-line-clamp: 2;
       }
       
       @media screen and (max-width: 480px) {
         font-size: 0.85rem;
+        -webkit-line-clamp: 2;
       }
     }
 
