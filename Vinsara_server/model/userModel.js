@@ -25,7 +25,6 @@ const userSchema = new Schema(
     },
     phonenumber: {
       type: String,
-
       validate: {
         validator: function (v) {
           return /^\+?[0-9]{7,15}$/.test(v);
@@ -34,6 +33,17 @@ const userSchema = new Schema(
       },
     },
     password: { type: String },
+    // Google Auth fields
+    googleId: { type: String, sparse: true },
+    googleEmail: { type: String, sparse: true },
+    googleName: { type: String },
+    googlePicture: { type: String },
+    authProvider: {
+      type: String,
+      enum: ["local", "google"],
+      default: "local",
+    },
+    isEmailVerified: { type: Boolean, default: false },
     address: {
       type: [addressSchema],
       validate: {
@@ -50,7 +60,11 @@ const userSchema = new Schema(
   options
 );
 
-userSchema.index({ email: 1, phonenumber: 1, role: 1 }, { unique: true });
+// Update index to include googleId and googleEmail
+userSchema.index(
+  { email: 1, phonenumber: 1, role: 1, googleId: 1, googleEmail: 1 },
+  { unique: true }
+);
 
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) return next();

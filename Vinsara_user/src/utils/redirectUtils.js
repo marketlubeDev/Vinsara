@@ -2,11 +2,9 @@
 
 export const storeRedirectPath = (path) => {
   try {
-    console.log("Attempting to store redirect path:", path);
 
     // Don't store login/signup paths
     if (path === "/login" || path === "/signup") {
-      console.log("Skipping storage for login/signup page");
       return false;
     }
 
@@ -15,7 +13,6 @@ export const storeRedirectPath = (path) => {
 
     // Verify storage
     const stored = localStorage.getItem("redirectAfterLogin");
-    console.log("Verification - stored path:", stored);
 
     return stored === path;
   } catch (error) {
@@ -27,7 +24,6 @@ export const storeRedirectPath = (path) => {
 export const getRedirectPath = () => {
   try {
     const path = localStorage.getItem("redirectAfterLogin");
-    console.log("Retrieved redirect path:", path);
     return path;
   } catch (error) {
     console.error("Error getting redirect path:", error);
@@ -38,7 +34,6 @@ export const getRedirectPath = () => {
 export const clearRedirectPath = () => {
   try {
     const path = localStorage.getItem("redirectAfterLogin");
-    console.log("Clearing redirect path:", path);
     localStorage.removeItem("redirectAfterLogin");
     return true;
   } catch (error) {
@@ -51,12 +46,10 @@ export const handleRedirectAfterLogin = (navigate) => {
   const redirectPath = getRedirectPath();
 
   if (redirectPath && redirectPath !== "/login" && redirectPath !== "/signup") {
-    console.log("Redirecting to stored path:", redirectPath);
     clearRedirectPath();
     navigate(redirectPath);
     return true;
   } else {
-    console.log("No valid redirect path, going to home");
     navigate("/");
     return false;
   }

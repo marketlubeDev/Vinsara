@@ -73,7 +73,6 @@ function Footer() {
 
     // Validate contact (email or phone)
     const contactValidation = validateContact(trimmedForm.phone);
-    console.log(contactValidation, "contactValidation>>>");
     if (!contactValidation.isValid) {
       toast.error("Please enter a valid email address or phone number");
       return;

@@ -3,6 +3,7 @@ const createToken = require("../utilities/createToken");
 const AppError = require("../utilities/errorHandlings/appError");
 const catchAsync = require("../utilities/errorHandlings/catchAsync");
 const otpToEmail = require("../utilities/sendMail");
+const { findOrCreateGoogleUser } = require("../utilities/googleAuth");
 
 const otpStore = new Map();
 
@@ -287,6 +288,65 @@ const deleteUserAddress = catchAsync(async (req, res, next) => {
   });
 });
 
+// Google Auth controller
+const googleLogin = catchAsync(async (req, res, next) => {
+  const { accessToken, userInfo } = req.body;
+
+
+  if (!accessToken || !userInfo) {
+    return next(
+      new AppError("Google access token and user info are required", 400)
+    );
+  }
+
+  try {
+    // Create user data from Google user info
+    const googleData = {
+      googleId: userInfo.id,
+      email: userInfo.email,
+      name: userInfo.name,
+      picture: userInfo.picture,
+      emailVerified: userInfo.verified_email || false,
+    };
+
+ 
+
+    // Find or create user
+    const result = await findOrCreateGoogleUser(googleData);
+
+    if (!result) {
+      console.error("Result is undefined");
+      return next(
+        new AppError("Google authentication failed - no result", 500)
+      );
+    }
+
+    if (!result.user) {
+      console.error("Result has no user");
+      return next(new AppError("Google authentication failed - no user", 500));
+    }
+
+    if (!result.token) {
+      console.error("Result has no token");
+      return next(new AppError("Google authentication failed - no token", 500));
+    }
+
+    res.status(200).json({
+      status: "Success",
+      message: "Google authentication successful",
+      content: {
+        user: result.user,
+      },
+      token: result.token,
+    });
+  } catch (error) {
+    console.error("Google Auth Error:", error);
+    return next(
+      new AppError(error.message || "Google authentication failed", 500)
+    );
+  }
+});
+
 module.exports = {
   register,
   // login,
@@ -299,4 +359,5 @@ module.exports = {
   sendOtp,
   verifyOtp,
   resendOtp,
+  googleLogin,
 };

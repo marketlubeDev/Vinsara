@@ -36,7 +36,6 @@ apiClient.interceptors.response.use(
       );
     }
     if (error.response.status === 401) {
-      console.log("401 error in API interceptor - storing redirect path before removing token");
       const currentPath = window.location.pathname + window.location.search;
       const protectedPaths = ["/cart", "/profile", "/checkout", "/orders"];
       const isProtectedRoute = protectedPaths.some(path => currentPath.startsWith(path));

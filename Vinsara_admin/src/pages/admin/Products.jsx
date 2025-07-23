@@ -88,7 +88,6 @@ function Products({ role }) {
   }, []);
 
   useEffect(() => {
-    console.log(searchKeyword, "searchKeyword>>");
     let filter = {};
     if (selectedStore) {
       filter.store = selectedStore;

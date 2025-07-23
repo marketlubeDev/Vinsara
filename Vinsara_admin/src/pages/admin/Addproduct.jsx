@@ -87,8 +87,6 @@ function Addproduct() {
   }, []);
 
   useEffect(() => {
-    console.log(showSubcategory, "showSubcategory>>");
-    console.log(productData.subcategory, "productData>>");
   }, [showSubcategory]);
 
   useEffect(() => {

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { useLogin } from "../../hooks/queries/auth";
+import GoogleLoginButton from "../../components/GoogleLoginButton";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -65,12 +66,18 @@ const Login = () => {
             {isLoading ? "Sending OTP..." : "Continue"}
           </button>
 
-          {/* <div className="terms-text">
+          <div className="terms-text">
             By continuing, you agree to our{" "}
             <Link to="/terms">Terms of Service</Link> &{" "}
             <Link to="/privacy">Privacy Policy</Link>
-          </div> */}
+          </div>
         </form>
+
+        <div className="divider">
+          <span>or</span>
+        </div>
+
+        <GoogleLoginButton className="google-login-btn" />
 
         {/* <div className="create-account">
           <div className="separator">Don't have an account?</div>
