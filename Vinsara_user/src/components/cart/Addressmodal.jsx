@@ -70,6 +70,27 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
 
   const handleInputChange = (e) => {
     const { name, value, checked } = e.target;
+    
+    // Handle phone number validation - only allow digits
+    if (name === "phoneNumber") {
+      const digitsOnly = value.replace(/\D/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [name]: digitsOnly,
+      }));
+      return;
+    }
+
+    // Handle pincode validation - only allow digits
+    if (name === "pincode") {
+      const digitsOnly = value.replace(/\D/g, '');
+      setFormData((prev) => ({
+        ...prev,
+        [name]: digitsOnly,
+      }));
+      return;
+    }
+    
     setFormData((prev) => ({
       ...prev,
       [name]: name === "saveAddress" ? checked : value,
@@ -114,6 +135,20 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
       formData.pincode === ""
     ) {
       toast.warning("Please fill all the fields");
+      return;
+    }
+
+    // Validate Indian phone number
+    const phoneRegex = /^[6-9]\d{9}$/;
+    if (!phoneRegex.test(formData.phoneNumber)) {
+      toast.warning("Please enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9");
+      return;
+    }
+
+    // Validate pincode (Indian postal code)
+    const pincodeRegex = /^[1-9][0-9]{5}$/;
+    if (!pincodeRegex.test(formData.pincode)) {
+      toast.warning("Please enter a valid 6-digit pincode");
       return;
     }
 
@@ -367,6 +402,9 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
                   value={formData.phoneNumber}
                   onChange={handleInputChange}
                   disabled={Object.keys(selectedAddress).length > 0}
+                  pattern="[6-9][0-9]{9}"
+                  maxLength="10"
+                  title="Enter a valid 10-digit Indian phone number starting with 6, 7, 8, or 9"
                 />
                 <input
                   type="text"
@@ -413,10 +451,13 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
                 <input
                   type="text"
                   name="pincode"
-                  placeholder="Pincode"
+                  placeholder="Pincode (6 digits)"
                   value={formData.pincode}
                   onChange={handleInputChange}
                   disabled={Object.keys(selectedAddress).length > 0}
+                  pattern="[1-9][0-9]{5}"
+                  maxLength="6"
+                  title="Enter a valid 6-digit Indian pincode"
                 />
               </form>
             </>
