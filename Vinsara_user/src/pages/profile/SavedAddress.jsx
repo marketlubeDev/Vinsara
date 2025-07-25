@@ -44,7 +44,9 @@ const SavedAddress = () => {
             </div>
             <div className="address-info">
               <h3>{addr?.fullName}</h3>
-              <h3>{addr?.street}</h3>
+              <p>{addr?.phoneNumber}</p>
+              <p>{addr?.building || addr?.houseApartmentName}</p>
+              <p>{addr?.street}</p>
               <p>{addr?.city}</p>
               <p>{addr?.state}</p>
               <p>{addr?.landmark}</p>

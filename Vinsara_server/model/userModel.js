@@ -6,6 +6,15 @@ const options = { discriminatorKey: "role", timestamps: true };
 
 const addressSchema = new Schema({
   fullName: { type: String },
+  phoneNumber: { 
+    type: String,
+    validate: {
+      validator: function (v) {
+        return /^\+?[0-9]{7,15}$/.test(v);
+      },
+      message: (props) => `${props.value} is not a valid phone number!`,
+    },
+  },
   houseApartmentName: { type: String },
   street: { type: String },
   landmark: { type: String },

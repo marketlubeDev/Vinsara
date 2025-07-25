@@ -18,6 +18,7 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
   const [selectedAddress, setSelectedAddress] = useState({});
   const [formData, setFormData] = useState({
     fullName: "",
+    phoneNumber: "",
     building: "",
     street: "",
     landmark: "",
@@ -35,6 +36,16 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
   useEffect(() => {
     updatedUser();
   }, []);
+
+  // Initialize fullName when modal opens
+  useEffect(() => {
+    if (isOpen && user?.username && !formData.fullName) {
+      setFormData(prev => ({
+        ...prev,
+        fullName: user.username
+      }));
+    }
+  }, [isOpen, user?.username]);
 
   const updatedUser = async () => {
     const response = await userService.getAuthUser();
@@ -75,7 +86,8 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
 
   const resetForm = () => {
     setFormData({
-      fullName: "",
+      fullName: user?.username || "",
+      phoneNumber: "",
       building: "",
       street: "",
       landmark: "",
@@ -88,7 +100,13 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    
+    // Ensure fullName is populated before validation
+    const currentFullName = formData.fullName || user?.username || "";
+    
     if (
+      currentFullName === "" ||
+      formData.phoneNumber === "" ||
       formData.building === "" ||
       formData.street === "" ||
       formData.city === "" ||
@@ -99,13 +117,46 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
       return;
     }
 
-    const updatedUser = {
-      ...user,
-      address: formData,
-    };
-    updateUser(updatedUser);
+    // Only save if in profile mode or if saveAddress is checked in cart mode
+    if (mode === "profile" || (mode === "cart" && formData.saveAddress)) {
+      // Ensure fullName is included in the address data
+      const addressData = {
+        ...formData,
+        fullName: currentFullName,
+      };
+
+      console.log("Address data being saved:", addressData);
+
+      // Check for duplicate addresses
+      const existingAddresses = user?.address || [];
+      const isDuplicate = existingAddresses.some(addr => 
+        addr.fullName === addressData.fullName &&
+        addr.phoneNumber === addressData.phoneNumber &&
+        addr.building === addressData.building &&
+        addr.street === addressData.street &&
+        addr.city === addressData.city &&
+        addr.state === addressData.state &&
+        addr.pincode === addressData.pincode
+      );
+
+      if (isDuplicate) {
+        toast.warning("This address already exists");
+        return;
+      }
+
+      const updatedUser = {
+        ...user,
+        address: [ addressData],
+      };
+      
+      updateUser(updatedUser);
+      toast.success("Address saved successfully");
+    }
+    
+    // Reset form
     setFormData({
-      fullName: user?.username,
+      fullName: user?.username || "",
+      phoneNumber: "",
       building: "",
       street: "",
       landmark: "",
@@ -128,11 +179,11 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
     }
 
     try {
-      const { fullName, building, street, city, state, pincode } = formData;
+      const { fullName, phoneNumber, building, street, city, state, pincode } = formData;
 
       if (
         Object.keys(selectedAddress).length > 0 ||
-        (fullName && building && street && city && state && pincode)
+        (fullName && phoneNumber && building && street && city && state && pincode)
       ) {
         if (paymentMethod == "online") {
           const response = await apiClient.post(`/order/paymentIntent`);
@@ -190,11 +241,11 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
   };
 
   const handleAddressSelection = () => {
-    const { fullName, building, street, city, state, pincode } = formData;
+    const { fullName, phoneNumber, building, street, city, state, pincode } = formData;
 
     if (
       Object.keys(selectedAddress).length > 0 ||
-      (fullName && building && street && city && state && pincode)
+      (fullName && phoneNumber && building && street && city && state && pincode)
     ) {
       setIsSelectingPayment(true);
     } else {
@@ -285,7 +336,8 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
                       />
                       <div className="address-details">
                         <strong>{addr?.fullName}</strong>
-                        <p>{addr?.building}</p>
+                        <p>{addr?.phoneNumber}</p>
+                        <p>{addr?.building || addr?.houseApartmentName}</p>
                         <p>{addr?.street}</p>
                         <p>{addr?.landmark}</p>
                         <p>{addr?.city}</p>
@@ -305,6 +357,14 @@ const AddressModal = ({ isOpen, onClose, mode = "cart" }) => {
                   name="fullName"
                   placeholder="Full Name"
                   value={formData.fullName}
+                  onChange={handleInputChange}
+                  disabled={Object.keys(selectedAddress).length > 0}
+                />
+                <input
+                  type="tel"
+                  name="phoneNumber"
+                  placeholder="Phone Number"
+                  value={formData.phoneNumber}
                   onChange={handleInputChange}
                   disabled={Object.keys(selectedAddress).length > 0}
                 />
