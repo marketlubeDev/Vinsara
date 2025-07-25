@@ -17,18 +17,29 @@ const OrderStatus = ({ isOpen, onClose, order }) => {
   const handleConfirmCancelOrder = () => {
     updateOrderStatus(orderId);
     setIsConfirmationModalOpen(false);
+    // Restore scroll when order is cancelled and modal might close
+    document.body.style.overflow = '';
   };
 
   useEffect(() => {
     if (isOpen) {
+      // Store the original overflow value
+      const originalOverflow = document.body.style.overflow;
       document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
+      
+      // Cleanup function to restore original overflow
+      return () => {
+        document.body.style.overflow = originalOverflow || '';
+      };
     }
+  }, [isOpen]);
+
+  // Additional cleanup when component unmounts
+  useEffect(() => {
     return () => {
       document.body.style.overflow = '';
     };
-  }, [isOpen]);
+  }, []);
 
   return (
     <div className="modal-overlay">
@@ -50,7 +61,13 @@ const OrderStatus = ({ isOpen, onClose, order }) => {
           }}
         >
           <h2>Order Status</h2>
-          <button className="close-btn" onClick={onClose}>
+          <button 
+            className="close-btn" 
+            onClick={() => {
+              document.body.style.overflow = '';
+              onClose();
+            }}
+          >
             X
           </button>
         </div>
