@@ -157,8 +157,11 @@ export const NavBar = () => {
     >
       {categories && (
         <ul className="nav-bar-list">
-          <li onClick={() => handleCategoryClick({ id: null, name: "All" })}>
-            ALL
+          <li onClick={() => {
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            navigate("/");
+          }}>
+            HOME
           </li>
           {/* <li
             onMouseEnter={() => handleCategoryHover(brands, "brands", "brands")}
