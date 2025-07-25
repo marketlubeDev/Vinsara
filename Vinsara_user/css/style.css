@@ -4809,6 +4809,11 @@ body.filter-open {
   font-weight: 500;
   cursor: pointer;
 }
+@media screen and (max-width: 768px) {
+  .order-summary .proceed-btn {
+    display: none;
+  }
+}
 .order-summary .coupon-section {
   background: transparent;
   padding: 0;
