@@ -30,6 +30,7 @@ export default function Header() {
   const [searchResults, setSearchResults] = useState([]);
   const searchRef = useRef(null);
   const [isBrandsListOpen, setIsBrandsListOpen] = useState(false);
+  const menuOpenRef = useRef(false);
 
   const { data: products } = useProducts();
   const { data: searchProducts, isLoading: searchProductsLoading } =
@@ -39,6 +40,8 @@ export default function Header() {
     setSearchResults(searchProducts?.data?.products || []);
   }, [searchProducts]);
 
+
+
   const toggleSearch = () => {
     setSearchQuery("");
     setSearchResults([]);
@@ -47,7 +50,10 @@ export default function Header() {
 
   const toggleUserMenu = () => {
     if (isLoggedIn) {
-      setIsUserMenuOpen(!isUserMenuOpen);
+      const newState = !isUserMenuOpen;
+      console.log('Toggling menu:', newState);
+      setIsUserMenuOpen(newState);
+      menuOpenRef.current = newState;
     } else {
       navigate("/login");
     }
@@ -67,6 +73,8 @@ export default function Header() {
 
   const handleMenuItemClick = (item) => {
     setIsUserMenuOpen(false);
+    menuOpenRef.current = false;
+    
     if (item === "logout") {
       localStorage.removeItem("user-auth-token");
       dispatch(clearCart());
@@ -75,17 +83,45 @@ export default function Header() {
     }
   };
 
-  // Close menu when clicking outside
+  // Close menu when clicking outside and on scroll
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (userMenuRef.current && !userMenuRef.current.contains(event.target)) {
         setIsUserMenuOpen(false);
+        menuOpenRef.current = false;
+      }
+    };
+
+    const handleScroll = () => {
+      // Close menu on scroll for both mobile and desktop
+      if (menuOpenRef.current) {
+        console.log('Scroll detected, closing menu');
+        setIsUserMenuOpen(false);
+        menuOpenRef.current = false;
+      }
+    };
+
+    const handleTouchStart = (event) => {
+      // Prevent menu from closing on touch events within the menu
+      if (userMenuRef.current && userMenuRef.current.contains(event.target)) {
+        event.stopPropagation();
       }
     };
 
     document.addEventListener("mousedown", handleClickOutside);
-    return () => document.removeEventListener("mousedown", handleClickOutside);
-  }, []);
+    document.addEventListener("scroll", handleScroll, { passive: true });
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    document.addEventListener("touchstart", handleTouchStart, { passive: true });
+    document.addEventListener("touchmove", handleScroll, { passive: true });
+
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+      document.removeEventListener("scroll", handleScroll);
+      window.removeEventListener("scroll", handleScroll);
+      document.removeEventListener("touchstart", handleTouchStart);
+      document.removeEventListener("touchmove", handleScroll);
+    };
+  }, []); // Remove dependency to avoid re-registering events
 
   const handleProductClick = (productId) => {
     navigate(`/products/${productId}`);

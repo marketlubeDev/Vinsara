@@ -453,6 +453,10 @@
     transform: translateY(100%);
     transition: transform 0.3s ease-out;
     height: fit-content;
+    z-index: 1001; // Ensure it's above other elements
+    background: white;
+    overflow-y: auto; // Allow scrolling within the menu
+    -webkit-overflow-scrolling: touch; // Smooth scrolling on iOS
 
     &.active {
       transform: translateY(0);
@@ -460,10 +464,15 @@
 
     .user-menu-header {
       padding: 20px 16px;
+      position: sticky;
+      top: 0;
+      background: white;
+      z-index: 1;
     }
 
     .menu-item {
       padding: 16px !important;
+      touch-action: manipulation; // Improve touch handling
     }
   }
 }
