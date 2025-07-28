@@ -363,9 +363,20 @@
     color: inherit;
     background: #f8f8f8;
     border-bottom: 1px solid #eee;
+    min-height: 60px; // Ensure minimum height for avatar visibility
 
     &:hover {
       background: #f0f0f0;
+    }
+
+    @media (max-width: 480px) {
+      padding: 12px 14px;
+      min-height: 55px;
+    }
+
+    @media (max-width: 360px) {
+      padding: 10px 12px;
+      min-height: 50px;
     }
 
     .user-avatar {
@@ -374,33 +385,89 @@
       border-radius: 50%;
       overflow: hidden;
       margin-right: 12px;
+      flex-shrink: 0; // Prevent avatar from shrinking
+      min-width: 40px; // Ensure minimum size
+      min-height: 40px; // Ensure minimum size
 
       img {
         width: 100%;
         height: 100%;
         object-fit: cover;
+        display: block; // Remove any inline spacing
+      }
+
+      @media (max-width: 480px) {
+        width: 35px;
+        height: 35px;
+        min-width: 35px;
+        min-height: 35px;
+        margin-right: 10px;
+      }
+
+      @media (max-width: 360px) {
+        width: 30px;
+        height: 30px;
+        min-width: 30px;
+        min-height: 30px;
+        margin-right: 8px;
       }
     }
 
     .user-info {
       flex: 1;
+      min-width: 0; // Allow text to shrink properly
+      overflow: hidden; // Prevent text overflow
 
       h4 {
         margin: 0;
         font-size: 0.95rem;
         font-weight: 500;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        @media (max-width: 480px) {
+          font-size: 0.9rem;
+        }
+
+        @media (max-width: 360px) {
+          font-size: 0.85rem;
+        }
       }
 
       p {
         margin: 0;
         font-size: 0.8rem;
         color: #666;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+
+        @media (max-width: 480px) {
+          font-size: 0.75rem;
+        }
+
+        @media (max-width: 360px) {
+          font-size: 0.7rem;
+        }
       }
     }
 
     .arrow-icon {
       color: #999;
       font-size: 1.2rem;
+      flex-shrink: 0; // Prevent arrow from shrinking
+      margin-left: 8px;
+
+      @media (max-width: 480px) {
+        font-size: 1.1rem;
+        margin-left: 6px;
+      }
+
+      @media (max-width: 360px) {
+        font-size: 1rem;
+        margin-left: 4px;
+      }
     }
   }
 
@@ -468,6 +535,17 @@
       top: 0;
       background: white;
       z-index: 1;
+      min-height: 70px; // Ensure avatar is fully visible on mobile
+
+      @media (max-width: 480px) {
+        padding: 16px 14px;
+        min-height: 65px;
+      }
+
+      @media (max-width: 360px) {
+        padding: 14px 12px;
+        min-height: 60px;
+      }
     }
 
     .menu-item {

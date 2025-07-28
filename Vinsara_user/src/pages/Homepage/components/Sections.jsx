@@ -55,8 +55,6 @@ export default function Sections({ label }) {
   return (
     <section
       className="trending-container"
-      data-aos="fade-up"
-      data-aos-duration="1000"
     >
       <div className="trending-header">
         <div className="trending-content">

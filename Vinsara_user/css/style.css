@@ -360,9 +360,22 @@ select {
   color: inherit;
   background: #f8f8f8;
   border-bottom: 1px solid #eee;
+  min-height: 60px;
 }
 .user-menu .user-menu-header:hover {
   background: #f0f0f0;
+}
+@media (max-width: 480px) {
+  .user-menu .user-menu-header {
+    padding: 12px 14px;
+    min-height: 55px;
+  }
+}
+@media (max-width: 360px) {
+  .user-menu .user-menu-header {
+    padding: 10px 12px;
+    min-height: 50px;
+  }
 }
 .user-menu .user-menu-header .user-avatar {
   width: 40px;
@@ -370,28 +383,92 @@ select {
   border-radius: 50%;
   overflow: hidden;
   margin-right: 12px;
+  flex-shrink: 0;
+  min-width: 40px;
+  min-height: 40px;
 }
 .user-menu .user-menu-header .user-avatar img {
   width: 100%;
   height: 100%;
   object-fit: cover;
+  display: block;
+}
+@media (max-width: 480px) {
+  .user-menu .user-menu-header .user-avatar {
+    width: 35px;
+    height: 35px;
+    min-width: 35px;
+    min-height: 35px;
+    margin-right: 10px;
+  }
+}
+@media (max-width: 360px) {
+  .user-menu .user-menu-header .user-avatar {
+    width: 30px;
+    height: 30px;
+    min-width: 30px;
+    min-height: 30px;
+    margin-right: 8px;
+  }
 }
 .user-menu .user-menu-header .user-info {
   flex: 1;
+  min-width: 0;
+  overflow: hidden;
 }
 .user-menu .user-menu-header .user-info h4 {
   margin: 0;
   font-size: 0.95rem;
   font-weight: 500;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 480px) {
+  .user-menu .user-menu-header .user-info h4 {
+    font-size: 0.9rem;
+  }
+}
+@media (max-width: 360px) {
+  .user-menu .user-menu-header .user-info h4 {
+    font-size: 0.85rem;
+  }
 }
 .user-menu .user-menu-header .user-info p {
   margin: 0;
   font-size: 0.8rem;
   color: #666;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+@media (max-width: 480px) {
+  .user-menu .user-menu-header .user-info p {
+    font-size: 0.75rem;
+  }
+}
+@media (max-width: 360px) {
+  .user-menu .user-menu-header .user-info p {
+    font-size: 0.7rem;
+  }
 }
 .user-menu .user-menu-header .arrow-icon {
   color: #999;
   font-size: 1.2rem;
+  flex-shrink: 0;
+  margin-left: 8px;
+}
+@media (max-width: 480px) {
+  .user-menu .user-menu-header .arrow-icon {
+    font-size: 1.1rem;
+    margin-left: 6px;
+  }
+}
+@media (max-width: 360px) {
+  .user-menu .user-menu-header .arrow-icon {
+    font-size: 1rem;
+    margin-left: 4px;
+  }
 }
 .user-menu .user-menu-items {
   padding: 8px 0;
@@ -449,7 +526,22 @@ select {
     top: 0;
     background: white;
     z-index: 1;
+    min-height: 70px;
   }
+}
+@media (max-width: 768px) and (max-width: 480px) {
+  .user-menu .user-menu-header {
+    padding: 16px 14px;
+    min-height: 65px;
+  }
+}
+@media (max-width: 768px) and (max-width: 360px) {
+  .user-menu .user-menu-header {
+    padding: 14px 12px;
+    min-height: 60px;
+  }
+}
+@media (max-width: 768px) {
   .user-menu .menu-item {
     padding: 16px !important;
     touch-action: manipulation;
