@@ -41,7 +41,7 @@ export const useAddToCart = () => {
             toast.success("Item added to cart");
         },
         onError: (error) => {
-            if (error.status === 401) {
+            if (error.response?.status === 401) {
                 toast.error("Please login to add item to cart");
                 // Store current path before redirecting to login
                 const redirectPath = window.location.pathname + window.location.search;

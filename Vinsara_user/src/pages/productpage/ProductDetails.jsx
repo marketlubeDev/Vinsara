@@ -8,12 +8,13 @@ import {
   FiHeart,
 } from "react-icons/fi";
 import { useProductById, useProducts } from "../../hooks/queries/products";
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import LoadingSpinner from "../../components/LoadingSpinner";
 import { ErrorBoundary } from "react-error-boundary";
 import ErrorFallback from "../../components/error/ErrorFallback";
 import { useAddToCart } from "../../hooks/queries/cart";
 import ButtonLoadingSpinner from "../../components/ButtonLoadingSpinners";
+import { storeRedirectPath } from "../../utils/redirectUtils";
 
 import { reviewService } from "../../api/services/reviewService";
 import { toast } from "sonner";
@@ -29,6 +30,7 @@ function ProductDetailsContent() {
   const navigate = useNavigate();
   const sliderRef = useRef(null);
   const isLoggedIn = useSelector((state) => state?.user?.isLoggedIn || false);
+  const location = useLocation();
 
   const [showAllReviews, setShowAllReviews] = useState(false);
   const [selectedVariant, setSelectedVariant] = useState(null);
@@ -87,6 +89,17 @@ function ProductDetailsContent() {
 
   const handleAddToCart = (type) => {
     try {
+      // Check if user is logged in before attempting to add to cart
+      const token = localStorage.getItem("user-auth-token");
+      if (!token) {
+        // Store current path for redirect after login
+        const redirectPath = location.pathname + location.search;
+        storeRedirectPath(redirectPath);
+        toast.error("Please login to add item to cart");
+        navigate("/login");
+        return;
+      }
+
       const productToAdd = {
         productId: product?._id,
         variantId: selectedVariant?._id || null,

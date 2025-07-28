@@ -1,13 +1,15 @@
 import React, { useEffect, useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useLocation } from "react-router-dom";
 import { useLogin } from "../../hooks/queries/auth";
 import GoogleLoginButton from "../../components/GoogleLoginButton";
+import { storeRedirectPath } from "../../utils/redirectUtils";
 
 const Login = () => {
   const [formData, setFormData] = useState({
     email: "",
     password: "",
   });
+  const location = useLocation();
 
   const { mutate: loginMutation, isPending: isLoading } = useLogin();
 
@@ -16,7 +18,22 @@ const Login = () => {
       top: 0,
       behavior: "smooth",
     });
-  }, []);
+
+    // Store redirect path if it comes from state or if no redirect path is already stored
+    const storedRedirectPath = localStorage.getItem("redirectAfterLogin");
+    
+    if (location.state?.from && !storedRedirectPath) {
+      storeRedirectPath(location.state.from);
+    } else if (document.referrer && !storedRedirectPath) {
+      // If user came from another page within the same domain, store that as redirect path
+      const referrerUrl = new URL(document.referrer);
+      const currentUrl = new URL(window.location.href);
+      
+      if (referrerUrl.origin === currentUrl.origin && referrerUrl.pathname !== '/login') {
+        storeRedirectPath(referrerUrl.pathname + referrerUrl.search);
+      }
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
