@@ -499,6 +499,28 @@
         height: 40px;
         object-fit: cover;
       }
+
+      &.no-results {
+        cursor: default;
+        color: #666;
+        font-style: italic;
+        justify-content: center;
+        padding: 1rem;
+
+        &:hover {
+          background-color: transparent;
+        }
+
+        .search-icon {
+          font-size: 1.2rem;
+          color: #999;
+          margin-right: 0.5rem;
+        }
+
+        span {
+          font-size: 0.9rem;
+        }
+      }
     }
   }
   .search-result-image {
@@ -540,6 +562,28 @@
       width: 40px; // Adjust width for mobile
       height: 40px; // Adjust height for mobile
       object-fit: cover; // Maintain aspect ratio
+    }
+
+    &.no-results {
+      cursor: default;
+      color: #666;
+      font-style: italic;
+      justify-content: center;
+      padding: 1rem;
+
+      &:hover {
+        background-color: transparent;
+      }
+
+      .search-icon {
+        font-size: 1.2rem;
+        color: #999;
+        margin-right: 0.5rem;
+      }
+
+      span {
+        font-size: 0.9rem;
+      }
     }
   }
 }

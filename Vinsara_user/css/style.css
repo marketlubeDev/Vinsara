@@ -476,6 +476,24 @@ select {
   height: 40px;
   object-fit: cover;
 }
+.header-search .search-results .search-result-item.no-results {
+  cursor: default;
+  color: #666;
+  font-style: italic;
+  justify-content: center;
+  padding: 1rem;
+}
+.header-search .search-results .search-result-item.no-results:hover {
+  background-color: transparent;
+}
+.header-search .search-results .search-result-item.no-results .search-icon {
+  font-size: 1.2rem;
+  color: #999;
+  margin-right: 0.5rem;
+}
+.header-search .search-results .search-result-item.no-results span {
+  font-size: 0.9rem;
+}
 .header-search .search-result-image {
   width: 50px;
   height: 50px;
@@ -514,6 +532,24 @@ select {
   width: 40px;
   height: 40px;
   object-fit: cover;
+}
+.mobile-search-results .mobile-result-item.no-results {
+  cursor: default;
+  color: #666;
+  font-style: italic;
+  justify-content: center;
+  padding: 1rem;
+}
+.mobile-search-results .mobile-result-item.no-results:hover {
+  background-color: transparent;
+}
+.mobile-search-results .mobile-result-item.no-results .search-icon {
+  font-size: 1.2rem;
+  color: #999;
+  margin-right: 0.5rem;
+}
+.mobile-search-results .mobile-result-item.no-results span {
+  font-size: 0.9rem;
 }
 
 .header-logo {
