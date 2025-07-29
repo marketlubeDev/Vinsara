@@ -416,8 +416,6 @@ function Orders() {
         <td className="px-6 py-4 whitespace-nowrap">
           {formatDate(order.createdAt)}
         </td>
-        <td className="px-6 py-4">{order?.user?.phonenumber}</td>
-        {/* <td className="px-6 py-4">{"1" || "N/A"}</td> */}
         <td className="px-6 py-4">
           <div className="text-sm space-y-1 max-w-xs">
             {order?.deliveryAddress ? (
@@ -430,6 +428,9 @@ function Orders() {
                   order.deliveryAddress.fullName.length > 30
                     ? `${order.deliveryAddress.fullName.substring(0, 30)}...`
                     : order.deliveryAddress.fullName}
+                </div>
+                <div className="text-gray-600 text-xs">
+                  {order?.user?.phonenumber || "N/A"}
                 </div>
                 <div
                   className="text-gray-600 truncate"
@@ -758,9 +759,6 @@ function Orders() {
                     <div className="flex items-center">Date Placed</div>
                   </th>
                   <th scope="col" className="px-6 py-3">
-                    <div className="flex items-center">Phone Number</div>
-                  </th>
-                  <th scope="col" className="px-6 py-3">
                     <div className="flex items-center">Address</div>
                   </th>
                   <th scope="col" className="px-6 py-3">
@@ -787,7 +785,7 @@ function Orders() {
                 <tbody>
                   <tr>
                     <td
-                      colSpan="8"
+                      colSpan="7"
                       className="px-6 py-12 text-center text-gray-500 bg-gray-50"
                     >
                       <div className="flex flex-col items-center justify-center">

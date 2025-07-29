@@ -16,6 +16,13 @@
     max-width: 100vw;
   }
 
+  // Specific fix for 1025px screen width
+  @media (min-width: 1025px) and (max-width: 1200px) {
+    height: 45vh;
+    padding: 15px 15px 0px 15px;
+    margin-bottom: 3rem;
+  }
+
   @include responsive.respond(phone) {
     padding: 0;
     height: auto;

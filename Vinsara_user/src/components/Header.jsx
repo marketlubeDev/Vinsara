@@ -186,19 +186,19 @@ export default function Header() {
             <div className="search-results">
               {searchResults?.length > 0 ? (
                 searchResults?.map((product) => (
-                  <div
-                    key={product?._id}
-                    className="search-result-item"
-                    onClick={() => handleProductClick(product?._id)}
-                  >
-                    <img
-                      className="search-result-image"
-                      src={product?.mainImage}
-                      alt={product?.name}
-                    />
-                    <span>{product?.name}</span>
-                    {/* <span>{product.category.name}</span> */}
-                  </div>
+                <div
+                  key={product?._id}
+                  className="search-result-item"
+                  onClick={() => handleProductClick(product?._id)}
+                >
+                  <img
+                    className="search-result-image"
+                    src={product?.mainImage}
+                    alt={product?.name}
+                  />
+                  <span>{product?.name}</span>
+                  {/* <span>{product.category.name}</span> */}
+                </div>
                 ))
               ) : (
                 <div className="search-result-item no-results">
@@ -304,18 +304,18 @@ export default function Header() {
             <div className="mobile-search-results">
               {searchResults?.length > 0 ? (
                 searchResults?.map((product) => (
-                  <div
-                    key={product?._id}
-                    className="search-result-item mobile-result-item"
-                    onClick={() => handleProductClick(product?._id)}
-                  >
-                    <img
-                      className="search-result-image mobile-result-image"
-                      src={product?.mainImage}
-                      alt={product?.name}
-                    />
-                    <span>{product?.name}</span>
-                  </div>
+                <div
+                  key={product?._id}
+                  className="search-result-item mobile-result-item"
+                  onClick={() => handleProductClick(product?._id)}
+                >
+                  <img
+                    className="search-result-image mobile-result-image"
+                    src={product?.mainImage}
+                    alt={product?.name}
+                  />
+                  <span>{product?.name}</span>
+                </div>
                 ))
               ) : (
                 <div className="search-result-item mobile-result-item no-results">
