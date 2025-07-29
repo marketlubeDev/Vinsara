@@ -424,19 +424,19 @@ function Orders() {
                   className="font-medium text-gray-900 truncate"
                   title={order.deliveryAddress.fullName}
                 >
-                  {order.deliveryAddress.fullName &&
+                  {order?.deliveryAddress.fullName &&
                   order.deliveryAddress.fullName.length > 30
                     ? `${order.deliveryAddress.fullName.substring(0, 30)}...`
                     : order.deliveryAddress.fullName}
                 </div>
                 <div className="text-gray-600 text-xs">
-                  {order?.user?.phonenumber || "N/A"}
+                  {order?.deliveryAddress?.phoneNumber || "N/A"}
                 </div>
                 <div
                   className="text-gray-600 truncate"
                   title={order.deliveryAddress.building}
                 >
-                  {order.deliveryAddress.building &&
+                  {order?.deliveryAddress.building &&
                   order.deliveryAddress.building.length > 30
                     ? `${order.deliveryAddress.building.substring(0, 30)}...`
                     : order.deliveryAddress.building}
@@ -445,27 +445,27 @@ function Orders() {
                   className="text-gray-600 truncate"
                   title={order.deliveryAddress.street}
                 >
-                  {order.deliveryAddress.street &&
+                  {order?.deliveryAddress.street &&
                   order.deliveryAddress.street.length > 30
                     ? `${order.deliveryAddress.street.substring(0, 30)}...`
                     : order.deliveryAddress.street}
                 </div>
-                {order.deliveryAddress.landmark && (
+                {order?.deliveryAddress.landmark && (
                   <div
                     className="text-gray-600 truncate"
                     title={`Near: ${order.deliveryAddress.landmark}`}
                   >
                     Near:{" "}
-                    {order.deliveryAddress.landmark.length > 25
+                    {order?.deliveryAddress.landmark.length > 25
                       ? `${order.deliveryAddress.landmark.substring(0, 25)}...`
                       : order.deliveryAddress.landmark}
                   </div>
                 )}
                 <div className="text-gray-600">
-                  {order.deliveryAddress.city}, {order.deliveryAddress.state}
+                  {order?.deliveryAddress.city}, {order.deliveryAddress.state}
                 </div>
                 <div className="font-medium text-gray-900">
-                  {order.deliveryAddress.pincode}
+                  {order?.deliveryAddress.pincode}
                 </div>
               </>
             ) : (
