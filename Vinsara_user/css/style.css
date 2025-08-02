@@ -4216,6 +4216,7 @@ body.filter-open {
   display: flex;
   gap: 1rem;
   width: fit-content;
+  flex-wrap: wrap;
 }
 .product-details .product-container .product-info .variants .type-buttons .type-btn {
   padding: 0.75rem 1rem;
