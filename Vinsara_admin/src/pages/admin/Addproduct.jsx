@@ -167,6 +167,27 @@ function Addproduct() {
 
   // Handle image upload (UI only)
   const handleImageChange = (idx, file) => {
+    if (!file) return;
+
+    // Check file size (2MB = 2 * 1024 * 1024 bytes)
+    const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+    if (file.size > maxSizeInBytes) {
+      toast.error(
+        `Image size should not exceed 2MB. Selected file is ${(
+          file.size /
+          (1024 * 1024)
+        ).toFixed(2)}MB`
+      );
+      return;
+    }
+
+    // Check file type
+    const allowedTypes = ["image/jpeg", "image/jpg", "image/png", "image/webp"];
+    if (!allowedTypes.includes(file.type)) {
+      toast.error("Only JPEG, JPG, PNG, and WebP image formats are allowed");
+      return;
+    }
+
     setVariants((prev) =>
       prev.map((v, i) => {
         if (i !== activeVariant) return v;
@@ -723,6 +744,9 @@ function Addproduct() {
           <div className="flex-1 space-y-4">
             <div>
               <label className="block mb-1 font-medium">Variant Images</label>
+              <p className="text-xs text-gray-500 mb-2">
+                Maximum size: 2MB per image | Formats: JPEG, JPG, PNG, WebP
+              </p>
               <div className="flex gap-4">
                 {[0, 1, 2, 3].map((idx) => (
                   <label
@@ -759,10 +783,12 @@ function Addproduct() {
                     <input
                       type="file"
                       className="hidden"
-                      accept="image/*"
-                      onChange={(e) =>
-                        handleImageChange(idx, e.target.files[0])
-                      }
+                      accept="image/jpeg,image/jpg,image/png,image/webp"
+                      onChange={(e) => {
+                        handleImageChange(idx, e.target.files[0]);
+                        // Reset the input value to allow selecting the same file again after error
+                        e.target.value = "";
+                      }}
                     />
                   </label>
                 ))}

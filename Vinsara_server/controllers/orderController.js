@@ -529,7 +529,7 @@ const filterOrders = catchAsync(async (req, res, next) => {
     .populate({
       path: "products.variantId",
       model: "Variant",
-      select: "attributes stock images",
+      select: "attributes stock images sku",
     })
     .populate("user", "username phonenumber address")
     .sort({ createdAt: -1 })

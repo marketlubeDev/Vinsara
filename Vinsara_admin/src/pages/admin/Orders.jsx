@@ -311,6 +311,24 @@ function Orders() {
       order.paymentStatus || "pending"
     );
     const [orderStatus, setOrderStatus] = useState(order.status || "pending");
+    const [imageModalOpen, setImageModalOpen] = useState(false);
+    const [selectedImage, setSelectedImage] = useState(null);
+    const [selectedProductName, setSelectedProductName] = useState("");
+    const [selectedSku, setSelectedSku] = useState("");
+
+    // Prevent background scrolling when modal is open
+    useEffect(() => {
+      if (imageModalOpen) {
+        document.body.style.overflow = 'hidden';
+      } else {
+        document.body.style.overflow = 'unset';
+      }
+
+      // Cleanup function to restore scrolling when component unmounts
+      return () => {
+        document.body.style.overflow = 'unset';
+      };
+    }, [imageModalOpen]);
 
     const paymentOptions = [
       "pending",
@@ -363,6 +381,77 @@ function Orders() {
       }
     };
 
+    // Function to handle image click
+    const handleImageClick = (imageUrl, productName, sku) => {
+      console.log("Image click data:", { imageUrl, productName, sku });
+      setSelectedImage(imageUrl);
+      setSelectedProductName(productName);
+      setSelectedSku(sku);
+      setImageModalOpen(true);
+    };
+
+    // Function to close image modal
+    const closeImageModal = () => {
+      setImageModalOpen(false);
+      setSelectedImage(null);
+      setSelectedProductName("");
+      setSelectedSku("");
+    };
+
+    // Image Modal Component
+    const ImageModal = () => {
+      if (!imageModalOpen) return null;
+
+      return (
+        <div 
+          className="fixed inset-0 bg-black bg-opacity-75 flex items-center justify-center z-50"
+          onClick={closeImageModal}
+        >
+          <div 
+            className="relative max-w-4xl max-h-screen p-4"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={closeImageModal}
+              className="absolute -top-12 right-0 text-white bg-transparent hover:bg-white hover:bg-opacity-20 rounded-full p-2 transition-all duration-200 z-10 shadow-lg border-2 border-white"
+              title="Close"
+            >
+              <svg
+                className="w-6 h-6"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth="2"
+                  d="M6 18L18 6M6 6l12 12"
+                />
+              </svg>
+            </button>
+            <div className="bg-white rounded-lg shadow-xl overflow-hidden">
+              <div className="pt-6 pb-4 px-4">
+                <img
+                  src={selectedImage}
+                  alt={selectedProductName}
+                  className="max-w-full max-h-96 object-contain mx-auto block"
+                />
+              </div>
+              <div className="p-4 bg-gray-50">
+                <h3 className="text-lg font-medium text-gray-900 text-center">
+                  {selectedProductName}
+                </h3>
+                <p className="text-sm text-gray-600 text-center mt-1">
+                  SKU: {selectedSku || "No SKU found"}
+                </p>
+              </div>
+            </div>
+          </div>
+        </div>
+      );
+    };
+
     // Function to format products display
     const formatProducts = (products) => {
       return products?.map((product, index) => (
@@ -378,7 +467,19 @@ function Orders() {
                   : product?.variantId?.images?.[0]
               }
               alt={product?.productId?.name}
-              className="w-10 h-10 object-cover rounded mr-2"
+              className="w-10 h-10 object-cover rounded mr-2 cursor-pointer hover:opacity-80 transition-opacity duration-200"
+              onClick={() => {
+                const sku = product?.variantId?.sku || product?.productId?.sku || product?.sku || "N/A";
+                console.log("SKU found:", sku);
+                handleImageClick(
+                  product?.productId?.images?.[0] 
+                    ? product?.productId?.images?.[0]
+                    : product?.variantId?.images?.[0],
+                  product?.productId?.name,
+                  sku
+                )
+              }}
+              title="Click to view larger image"
             />
             <div>
               <p
@@ -407,110 +508,113 @@ function Orders() {
     };
 
     return (
-      <tr className="bg-white border-b hover:bg-gray-50">
-        <td className="px-6 py-4 w-56">
-          <div className="max-h-32 overflow-y-auto">
-            {formatProducts(order.products)}
-          </div>
-        </td>
-        <td className="px-6 py-4 whitespace-nowrap">
-          {formatDate(order.createdAt)}
-        </td>
-        <td className="px-6 py-4">
-          <div className="text-sm space-y-1 max-w-xs">
-            {order?.deliveryAddress ? (
-              <>
-                <div
-                  className="font-medium text-gray-900 truncate"
-                  title={order.deliveryAddress.fullName}
-                >
-                  {order?.deliveryAddress.fullName &&
-                  order.deliveryAddress.fullName.length > 30
-                    ? `${order.deliveryAddress.fullName.substring(0, 30)}...`
-                    : order.deliveryAddress.fullName}
-                </div>
-                <div className="text-gray-600 text-xs">
-                  {order?.deliveryAddress?.phoneNumber || "N/A"}
-                </div>
-                <div
-                  className="text-gray-600 truncate"
-                  title={order.deliveryAddress.building}
-                >
-                  {order?.deliveryAddress.building &&
-                  order.deliveryAddress.building.length > 30
-                    ? `${order.deliveryAddress.building.substring(0, 30)}...`
-                    : order.deliveryAddress.building}
-                </div>
-                <div
-                  className="text-gray-600 truncate"
-                  title={order.deliveryAddress.street}
-                >
-                  {order?.deliveryAddress.street &&
-                  order.deliveryAddress.street.length > 30
-                    ? `${order.deliveryAddress.street.substring(0, 30)}...`
-                    : order.deliveryAddress.street}
-                </div>
-                {order?.deliveryAddress.landmark && (
+      <>
+        <ImageModal />
+        <tr className="bg-white border-b hover:bg-gray-50">
+          <td className="px-6 py-4 w-56">
+            <div className="max-h-32 overflow-y-auto">
+              {formatProducts(order.products)}
+            </div>
+          </td>
+          <td className="px-6 py-4 whitespace-nowrap">
+            {formatDate(order.createdAt)}
+          </td>
+          <td className="px-6 py-4">
+            <div className="text-sm space-y-1 max-w-xs">
+              {order?.deliveryAddress ? (
+                <>
+                  <div
+                    className="font-medium text-gray-900 truncate"
+                    title={order.deliveryAddress.fullName}
+                  >
+                    {order?.deliveryAddress.fullName &&
+                    order.deliveryAddress.fullName.length > 30
+                      ? `${order.deliveryAddress.fullName.substring(0, 30)}...`
+                      : order.deliveryAddress.fullName}
+                  </div>
+                  <div className="text-gray-600 text-xs">
+                    {order?.deliveryAddress?.phoneNumber || "N/A"}
+                  </div>
                   <div
                     className="text-gray-600 truncate"
-                    title={`Near: ${order.deliveryAddress.landmark}`}
+                    title={order.deliveryAddress.building}
                   >
-                    Near:{" "}
-                    {order?.deliveryAddress.landmark.length > 25
-                      ? `${order.deliveryAddress.landmark.substring(0, 25)}...`
-                      : order.deliveryAddress.landmark}
+                    {order?.deliveryAddress.building &&
+                    order.deliveryAddress.building.length > 30
+                      ? `${order.deliveryAddress.building.substring(0, 30)}...`
+                      : order.deliveryAddress.building}
                   </div>
-                )}
-                <div className="text-gray-600">
-                  {order?.deliveryAddress.city}, {order.deliveryAddress.state}
-                </div>
-                <div className="font-medium text-gray-900">
-                  {order?.deliveryAddress.pincode}
-                </div>
-              </>
-            ) : (
-              "N/A"
-            )}
-          </div>
-        </td>
+                  <div
+                    className="text-gray-600 truncate"
+                    title={order.deliveryAddress.street}
+                  >
+                    {order?.deliveryAddress.street &&
+                    order.deliveryAddress.street.length > 30
+                      ? `${order.deliveryAddress.street.substring(0, 30)}...`
+                      : order.deliveryAddress.street}
+                  </div>
+                  {order?.deliveryAddress.landmark && (
+                    <div
+                      className="text-gray-600 truncate"
+                      title={`Near: ${order.deliveryAddress.landmark}`}
+                    >
+                      Near:{" "}
+                      {order?.deliveryAddress.landmark.length > 25
+                        ? `${order.deliveryAddress.landmark.substring(0, 25)}...`
+                        : order.deliveryAddress.landmark}
+                    </div>
+                  )}
+                  <div className="text-gray-600">
+                    {order?.deliveryAddress.city}, {order.deliveryAddress.state}
+                  </div>
+                  <div className="font-medium text-gray-900">
+                    {order?.deliveryAddress.pincode}
+                  </div>
+                </>
+              ) : (
+                "N/A"
+              )}
+            </div>
+          </td>
 
-        <td className="px-6 py-4">
-          <div className="space-y-1">
-            {[
-              ...new Set(
-                order?.products?.map((p) => p?.productId?.category?.name)
-              ),
-            ].map((categoryName, index) => (
-              <div
-                key={index}
-                className="text-sm text-gray-600 truncate"
-                title={categoryName}
-              >
-                {categoryName && categoryName.length > 30
-                  ? `${categoryName.substring(0, 30)}...`
-                  : categoryName}
-              </div>
-            ))}
-          </div>
-        </td>
-        <td className="px-6 py-4">
-          <div className="font-medium text-gray-900">
-            ₹{order.totalAmount?.toLocaleString() || 0}
-          </div>
-        </td>
-        <StatusDropdown
-          currentStatus={paymentStatus}
-          options={paymentOptions}
-          onStatusChange={handlePaymentStatusChange}
-          type="payment"
-        />
-        <StatusDropdown
-          currentStatus={orderStatus}
-          options={getAvailableOrderOptions()}
-          onStatusChange={handleOrderStatusChange}
-          type="order"
-        />
-      </tr>
+          <td className="px-6 py-4">
+            <div className="space-y-1">
+              {[
+                ...new Set(
+                  order?.products?.map((p) => p?.productId?.category?.name)
+                ),
+              ].map((categoryName, index) => (
+                <div
+                  key={index}
+                  className="text-sm text-gray-600 truncate"
+                  title={categoryName}
+                >
+                  {categoryName && categoryName.length > 30
+                    ? `${categoryName.substring(0, 30)}...`
+                    : categoryName}
+                </div>
+              ))}
+            </div>
+          </td>
+          <td className="px-6 py-4">
+            <div className="font-medium text-gray-900">
+              ₹{order.totalAmount?.toLocaleString() || 0}
+            </div>
+          </td>
+          <StatusDropdown
+            currentStatus={paymentStatus}
+            options={paymentOptions}
+            onStatusChange={handlePaymentStatusChange}
+            type="payment"
+          />
+          <StatusDropdown
+            currentStatus={orderStatus}
+            options={getAvailableOrderOptions()}
+            onStatusChange={handleOrderStatusChange}
+            type="order"
+          />
+        </tr>
+      </>
     );
   };
 
