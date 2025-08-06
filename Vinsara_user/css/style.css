@@ -4972,10 +4972,15 @@ body.filter-open {
   max-height: 100%;
   transition: transform 0.3s ease;
   cursor: zoom-in;
+  user-select: none;
 }
 .image-modal .image-modal-content .image-modal-image-wrapper .image-modal-image-container.zoomed {
-  cursor: zoom-out;
+  cursor: grab;
   overflow: hidden;
+}
+.image-modal .image-modal-content .image-modal-image-wrapper .image-modal-image-container.dragging {
+  cursor: grabbing;
+  transition: none;
 }
 .image-modal .image-modal-content .image-modal-image-wrapper .image-modal-image-container .image-modal-image {
   max-width: 100%;

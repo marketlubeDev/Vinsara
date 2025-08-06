@@ -6,11 +6,16 @@ const ImageModal = ({ isOpen, onClose, images, initialIndex = 0, productName }) 
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [imagePosition, setImagePosition] = useState({ x: 0, y: 0 });
 
   useEffect(() => {
     setCurrentIndex(initialIndex);
     setIsZoomed(false);
     setZoomLevel(1);
+    setImagePosition({ x: 0, y: 0 });
+    setIsDragging(false);
   }, [initialIndex, isOpen]);
 
   useEffect(() => {
@@ -30,14 +35,22 @@ const ImageModal = ({ isOpen, onClose, images, initialIndex = 0, productName }) 
     };
 
     document.addEventListener("keydown", handleKeyPress);
-    return () => document.removeEventListener("keydown", handleKeyPress);
-  }, [isOpen, currentIndex]);
+    document.addEventListener("mousemove", handleMouseMove);
+    document.addEventListener("mouseup", handleMouseUp);
+    
+    return () => {
+      document.removeEventListener("keydown", handleKeyPress);
+      document.removeEventListener("mousemove", handleMouseMove);
+      document.removeEventListener("mouseup", handleMouseUp);
+    };
+  }, [isOpen, currentIndex, isDragging, dragStart, imagePosition, zoomLevel]);
 
   const goToNext = () => {
     if (images && images.length > 1) {
       setCurrentIndex((prev) => (prev + 1) % images.length);
       setIsZoomed(false);
       setZoomLevel(1);
+      setImagePosition({ x: 0, y: 0 });
     }
   };
 
@@ -46,6 +59,7 @@ const ImageModal = ({ isOpen, onClose, images, initialIndex = 0, productName }) 
       setCurrentIndex((prev) => (prev - 1 + images.length) % images.length);
       setIsZoomed(false);
       setZoomLevel(1);
+      setImagePosition({ x: 0, y: 0 });
     }
   };
 
@@ -64,6 +78,67 @@ const ImageModal = ({ isOpen, onClose, images, initialIndex = 0, productName }) 
   const resetZoom = () => {
     setZoomLevel(1);
     setIsZoomed(false);
+    setImagePosition({ x: 0, y: 0 });
+  };
+
+  // Mouse drag handlers
+  const handleMouseDown = (e) => {
+    if (zoomLevel > 1) {
+      setIsDragging(true);
+      setDragStart({
+        x: e.clientX - imagePosition.x,
+        y: e.clientY - imagePosition.y
+      });
+    }
+  };
+
+  const handleMouseMove = (e) => {
+    if (isDragging && zoomLevel > 1) {
+      const newX = e.clientX - dragStart.x;
+      const newY = e.clientY - dragStart.y;
+      
+      // Add boundaries to prevent dragging too far
+      const maxOffset = 100 * (zoomLevel - 1);
+      const boundedX = Math.max(-maxOffset, Math.min(maxOffset, newX));
+      const boundedY = Math.max(-maxOffset, Math.min(maxOffset, newY));
+      
+      setImagePosition({ x: boundedX, y: boundedY });
+    }
+  };
+
+  const handleMouseUp = () => {
+    setIsDragging(false);
+  };
+
+  // Touch handlers for mobile
+  const handleTouchStart = (e) => {
+    if (zoomLevel > 1 && e.touches.length === 1) {
+      setIsDragging(true);
+      const touch = e.touches[0];
+      setDragStart({
+        x: touch.clientX - imagePosition.x,
+        y: touch.clientY - imagePosition.y
+      });
+    }
+  };
+
+  const handleTouchMove = (e) => {
+    if (isDragging && zoomLevel > 1 && e.touches.length === 1) {
+      e.preventDefault();
+      const touch = e.touches[0];
+      const newX = touch.clientX - dragStart.x;
+      const newY = touch.clientY - dragStart.y;
+      
+      const maxOffset = 100 * (zoomLevel - 1);
+      const boundedX = Math.max(-maxOffset, Math.min(maxOffset, newX));
+      const boundedY = Math.max(-maxOffset, Math.min(maxOffset, newY));
+      
+      setImagePosition({ x: boundedX, y: boundedY });
+    }
+  };
+
+  const handleTouchEnd = () => {
+    setIsDragging(false);
   };
 
   if (!images || images.length === 0) return null;
@@ -95,14 +170,22 @@ const ImageModal = ({ isOpen, onClose, images, initialIndex = 0, productName }) 
           {/* Main Image */}
           <div className="image-modal-image-wrapper">
           <div 
-            className={`image-modal-image-container ${isZoomed ? 'zoomed' : ''}`}
-            style={{ transform: `scale(${zoomLevel})` }}
+            className={`image-modal-image-container ${isZoomed ? 'zoomed' : ''} ${isDragging ? 'dragging' : ''}`}
+            style={{ 
+              transform: `scale(${zoomLevel}) translate(${imagePosition.x}px, ${imagePosition.y}px)`,
+              cursor: zoomLevel > 1 ? (isDragging ? 'grabbing' : 'grab') : 'zoom-in'
+            }}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
           >
             <img
               src={images[currentIndex]}
               alt={`${productName} ${currentIndex + 1}`}
               className="image-modal-image"
               onDoubleClick={isZoomed ? resetZoom : handleZoomIn}
+              draggable={false}
             />
           </div>
 
