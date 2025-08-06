@@ -169,11 +169,11 @@ function Addproduct() {
   const handleImageChange = (idx, file) => {
     if (!file) return;
 
-    // Check file size (2MB = 2 * 1024 * 1024 bytes)
-    const maxSizeInBytes = 2 * 1024 * 1024; // 2MB
+    // Check file size (1MB = 1 * 1024 * 1024 bytes)
+    const maxSizeInBytes = 1 * 1024 * 1024; // 1MB
     if (file.size > maxSizeInBytes) {
       toast.error(
-        `Image size should not exceed 2MB. Selected file is ${(
+        `Image size should not exceed 1MB. Selected file is ${(
           file.size /
           (1024 * 1024)
         ).toFixed(2)}MB`
@@ -745,7 +745,7 @@ function Addproduct() {
             <div>
               <label className="block mb-1 font-medium">Variant Images</label>
               <p className="text-xs text-gray-500 mb-2">
-                Maximum size: 2MB per image | Formats: JPEG, JPG, PNG, WebP
+                Maximum size: 1MB per image | Formats: JPEG, JPG, PNG, WebP
               </p>
               <div className="flex gap-4">
                 {[0, 1, 2, 3].map((idx) => (

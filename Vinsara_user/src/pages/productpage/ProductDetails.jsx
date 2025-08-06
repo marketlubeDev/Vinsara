@@ -20,6 +20,7 @@ import { reviewService } from "../../api/services/reviewService";
 import { toast } from "sonner";
 import { useCart } from "../../hooks/queries/cart";
 import RatingModal from "./RatingModal";
+import ImageModal from "../../components/ImageModal";
 
 const CalculateDiscount = (price, offerPrice) => {
   const discount = ((price - offerPrice) / price) * 100;
@@ -52,6 +53,8 @@ function ProductDetailsContent() {
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewImage, setPreviewImage] = useState(null);
+  const [isImageModalOpen, setIsImageModalOpen] = useState(false);
+  const [imageModalIndex, setImageModalIndex] = useState(0);
 
   useEffect(() => {
     setSelectedVariant(null);
@@ -150,8 +153,13 @@ function ProductDetailsContent() {
     return showFullDescription ? text : words?.slice(0, 100).join(" ") + "...";
   };
 
-  const handleImageClick = (imageUrl) => {
-    setPreviewImage(imageUrl);
+  const handleImageClick = (imageUrl, index = 0) => {
+    setImageModalIndex(index);
+    setIsImageModalOpen(true);
+  };
+
+  const handleCloseImageModal = () => {
+    setIsImageModalOpen(false);
   };
 
   const handleClosePreview = () => {
@@ -184,6 +192,12 @@ function ProductDetailsContent() {
                   : product?.images?.[0])
               }
               alt={product?.name}
+              onClick={() => {
+                const currentImages = selectedVariant ? selectedVariant.images : product?.images || [];
+                const currentIndex = currentImages.findIndex(img => img === selectedImage) || 0;
+                handleImageClick(selectedImage, currentIndex);
+              }}
+              style={{ cursor: "pointer" }}
             />
           </div>
           <div className="thumbnail-images">
@@ -193,7 +207,10 @@ function ProductDetailsContent() {
                     key={index}
                     src={image}
                     alt={`${product?.name} ${index + 1}`}
-                    onClick={() => setSelectedImage(image)}
+                    onClick={() => {
+                      setSelectedImage(image);
+                      handleImageClick(image, index);
+                    }}
                     className={selectedImage === image ? "selected" : ""}
                     style={{ cursor: "pointer" }}
                   />
@@ -203,7 +220,10 @@ function ProductDetailsContent() {
                     key={index}
                     src={image}
                     alt={`${product?.name} ${index + 1}`}
-                    onClick={() => setSelectedImage(image)}
+                    onClick={() => {
+                      setSelectedImage(image);
+                      handleImageClick(image, index);
+                    }}
                     className={selectedImage === image ? "selected" : ""}
                     style={{ cursor: "pointer" }}
                   />
@@ -535,7 +555,7 @@ function ProductDetailsContent() {
                             height: "20%",
                             objectFit: "cover",
                           }}
-                          onClick={() => handleImageClick(review.image)}
+                          onClick={() => handleImageClick(review.image, 0)}
                         />
                       )}
                     </div>
@@ -621,6 +641,14 @@ function ProductDetailsContent() {
         onClose={() => setIsRatingModalOpen(false)}
         onSubmit={handleSubmitReview}
         productId={product?._id}
+      />
+
+      <ImageModal
+        isOpen={isImageModalOpen}
+        onClose={handleCloseImageModal}
+        images={selectedVariant ? selectedVariant.images : product?.images || []}
+        initialIndex={imageModalIndex}
+        productName={product?.name}
       />
 
       {previewImage && (
