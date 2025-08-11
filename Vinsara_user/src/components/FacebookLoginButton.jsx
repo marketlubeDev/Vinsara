@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect } from "react";
 import FacebookLogin from "@greatsumini/react-facebook-login";
 import { useFacebookLogin } from "../hooks/queries/facebookAuth";
 
@@ -10,6 +10,17 @@ const FacebookLoginButton = ({
 }) => {
   const facebookLoginMutation = useFacebookLogin(onSuccess, onError);
   const isLoading = facebookLoginMutation.isPending;
+
+  // This warning about overriding access token is expected when using
+  // react-facebook-login with other Facebook SDKs on the page.
+  // It's safe to ignore as we're passing the token directly to our API.
+
+  // Log mutation state for debugging
+  console.log("Facebook login mutation state:", {
+    isPending: facebookLoginMutation.isPending,
+    isError: facebookLoginMutation.isError,
+    error: facebookLoginMutation.error,
+  });
 
   const handleFacebookResponse = (response) => {
     console.log(response, "response");
@@ -54,6 +65,11 @@ const FacebookLoginButton = ({
       fields={fields}
       scope={scope}
       callback={handleFacebookResponse}
+      disableMobileRedirect={true}
+      isMobile={false}
+      version="v18.0"
+      xfbml={false}
+      cookie={false}
       render={(renderProps) => (
         <button
           type="button"

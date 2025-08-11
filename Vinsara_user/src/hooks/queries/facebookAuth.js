@@ -11,9 +11,15 @@ export const useFacebookLogin = (onSuccess, onError) => {
   const dispatch = useDispatch();
 
   return useMutation({
-    mutationFn: ({ accessToken, userInfo }) =>
-      facebookAuthService.facebookLogin(accessToken, userInfo),
+    mutationFn: ({ accessToken, userInfo }) => {
+      console.log("Calling Facebook auth service with:", {
+        accessToken,
+        userInfo,
+      });
+      return facebookAuthService.facebookLogin(accessToken, userInfo);
+    },
     onSuccess: (data) => {
+      console.log("Facebook login successful, received data:", data);
       // Store token
       localStorage.setItem("user-auth-token", data.token);
       console.log(data, "data");
@@ -32,6 +38,8 @@ export const useFacebookLogin = (onSuccess, onError) => {
       if (onSuccess) onSuccess(data);
     },
     onError: (error) => {
+      console.error("Facebook login error:", error);
+      console.error("Error response:", error.response);
       toast.error(error.response?.data?.message || "Facebook login failed");
 
       // Call custom onError if provided
