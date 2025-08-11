@@ -6,7 +6,7 @@ const options = { discriminatorKey: "role", timestamps: true };
 
 const addressSchema = new Schema({
   fullName: { type: String },
-  phoneNumber: { 
+  phoneNumber: {
     type: String,
     validate: {
       validator: function (v) {
@@ -47,9 +47,14 @@ const userSchema = new Schema(
     googleEmail: { type: String, sparse: true },
     googleName: { type: String },
     googlePicture: { type: String },
+    // Facebook Auth fields
+    facebookId: { type: String, sparse: true },
+    facebookEmail: { type: String, sparse: true },
+    facebookName: { type: String },
+    facebookPicture: { type: String },
     authProvider: {
       type: String,
-      enum: ["local", "google"],
+      enum: ["local", "google", "facebook"],
       default: "local",
     },
     isEmailVerified: { type: Boolean, default: false },
@@ -69,9 +74,17 @@ const userSchema = new Schema(
   options
 );
 
-// Update index to include googleId and googleEmail
+// Update index to include googleId, googleEmail, facebookId, and facebookEmail
 userSchema.index(
-  { email: 1, phonenumber: 1, role: 1, googleId: 1, googleEmail: 1 },
+  {
+    email: 1,
+    phonenumber: 1,
+    role: 1,
+    googleId: 1,
+    googleEmail: 1,
+    facebookId: 1,
+    facebookEmail: 1,
+  },
   { unique: true }
 );
 

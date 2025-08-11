@@ -6926,6 +6926,47 @@ body.modal-open {
     transform: rotate(360deg);
   }
 }
+.login-container .login-card .facebook-login-button {
+  width: 100%;
+  padding: 12px;
+  background-color: #1877f2;
+  color: white;
+  border: 1px solid #1877f2;
+  border-radius: 4px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  transition: all 0.2s ease;
+}
+.login-container .login-card .facebook-login-button:hover {
+  background-color: #166fe5;
+  border-color: #166fe5;
+}
+.login-container .login-card .facebook-login-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.login-container .login-card .facebook-login-button svg path {
+  fill: white;
+}
+.login-container .login-card .facebook-login-button .loading-spinner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.login-container .login-card .facebook-login-button .loading-spinner .spinner {
+  width: 16px;
+  height: 16px;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-top: 2px solid white;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
 .login-container .login-card .create-account {
   text-align: center;
   border-top: 1px solid #eee;

@@ -4,6 +4,7 @@ const AppError = require("../utilities/errorHandlings/appError");
 const catchAsync = require("../utilities/errorHandlings/catchAsync");
 const otpToEmail = require("../utilities/sendMail");
 const { findOrCreateGoogleUser } = require("../utilities/googleAuth");
+const { findOrCreateFacebookUser } = require("../utilities/facebookAuth");
 
 const otpStore = new Map();
 
@@ -292,7 +293,6 @@ const deleteUserAddress = catchAsync(async (req, res, next) => {
 const googleLogin = catchAsync(async (req, res, next) => {
   const { accessToken, userInfo } = req.body;
 
-
   if (!accessToken || !userInfo) {
     return next(
       new AppError("Google access token and user info are required", 400)
@@ -308,8 +308,6 @@ const googleLogin = catchAsync(async (req, res, next) => {
       picture: userInfo.picture,
       emailVerified: userInfo.verified_email || false,
     };
-
- 
 
     // Find or create user
     const result = await findOrCreateGoogleUser(googleData);
@@ -347,6 +345,63 @@ const googleLogin = catchAsync(async (req, res, next) => {
   }
 });
 
+// Facebook Auth controller
+const facebookLogin = catchAsync(async (req, res, next) => {
+  const { accessToken, userInfo } = req.body;
+
+  if (!accessToken || !userInfo) {
+    return next(
+      new AppError("Facebook access token and user info are required", 400)
+    );
+  }
+
+  try {
+    // Create user data from Facebook user info
+    const facebookData = {
+      facebookId: userInfo.id,
+      email: userInfo.email,
+      name: userInfo.name,
+      picture: userInfo.picture,
+    };
+
+    // Find or create user
+    const result = await findOrCreateFacebookUser(facebookData);
+
+    if (!result) {
+      console.error("Result is undefined");
+      return next(
+        new AppError("Facebook authentication failed - no result", 500)
+      );
+    }
+
+    if (!result.user) {
+      console.error("Result has no user");
+      return next(
+        new AppError("Facebook authentication failed - no user", 500)
+      );
+    }
+
+    if (!result.token) {
+      console.error("Result has no token");
+      return next(
+        new AppError("Facebook authentication failed - no token", 500)
+      );
+    }
+
+    // Return success response
+    res.status(200).json({
+      success: true,
+      content: {
+        user: result.user,
+      },
+      token: result.token,
+    });
+  } catch (error) {
+    console.error("Facebook login error:", error);
+    return next(new AppError("Facebook authentication failed", 500));
+  }
+});
+
 module.exports = {
   register,
   // login,
@@ -360,4 +415,5 @@ module.exports = {
   verifyOtp,
   resendOtp,
   googleLogin,
+  facebookLogin,
 };

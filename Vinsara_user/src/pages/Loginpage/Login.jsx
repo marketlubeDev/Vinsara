@@ -3,6 +3,7 @@ import { Link, useLocation } from "react-router-dom";
 import { useLogin } from "../../hooks/queries/auth";
 import GoogleLoginButton from "../../components/GoogleLoginButton";
 import { storeRedirectPath } from "../../utils/redirectUtils";
+import FacebookLoginButton from "../../components/FacebookLoginButton";
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -21,15 +22,18 @@ const Login = () => {
 
     // Store redirect path if it comes from state or if no redirect path is already stored
     const storedRedirectPath = localStorage.getItem("redirectAfterLogin");
-    
+
     if (location.state?.from && !storedRedirectPath) {
       storeRedirectPath(location.state.from);
     } else if (document.referrer && !storedRedirectPath) {
       // If user came from another page within the same domain, store that as redirect path
       const referrerUrl = new URL(document.referrer);
       const currentUrl = new URL(window.location.href);
-      
-      if (referrerUrl.origin === currentUrl.origin && referrerUrl.pathname !== '/login') {
+
+      if (
+        referrerUrl.origin === currentUrl.origin &&
+        referrerUrl.pathname !== "/login"
+      ) {
         storeRedirectPath(referrerUrl.pathname + referrerUrl.search);
       }
     }
@@ -68,17 +72,6 @@ const Login = () => {
             />
           </div>
 
-          {/* <div className="form-group">
-            <input
-              type="password"
-              name="password"
-              value={formData.password}
-              onChange={handleChange}
-              placeholder="Password"
-              required
-            />
-          </div> */}
-
           <button type="submit" className="login-button" disabled={isLoading}>
             {isLoading ? "Sending OTP..." : "Continue"}
           </button>
@@ -95,13 +88,7 @@ const Login = () => {
         </div>
 
         <GoogleLoginButton className="google-login-btn" />
-
-        {/* <div className="create-account">
-          <div className="separator">Don't have an account?</div>
-          <Link to="/signup" className="create-account-button">
-            Create An Account
-          </Link>
-        </div> */}
+        <FacebookLoginButton className="facebook-login-btn" />
       </div>
     </div>
   );
