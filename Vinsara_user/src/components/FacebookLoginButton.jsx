@@ -80,19 +80,7 @@ const FacebookLoginButton = ({
   // react-facebook-login with other Facebook SDKs on the page.
   // It's safe to ignore as we're passing the token directly to our API.
 
-  // Log mutation state for debugging
-  console.log("Facebook login mutation state:", {
-    isPending: facebookLoginMutation.isPending,
-    isError: facebookLoginMutation.isError,
-    error: facebookLoginMutation.error,
-  });
-
   const handleFacebookResponse = (response) => {
-    console.log("Facebook response received:", response);
-    console.log("Response keys:", Object.keys(response));
-    console.log("Access token:", response.accessToken);
-    console.log("UserID:", response.userID);
-
     // Handle different response statuses
     if (response.status === "unknown") {
       console.error("User cancelled login or did not fully authorize.");
@@ -121,18 +109,12 @@ const FacebookLoginButton = ({
         picture: response.picture, // Send the entire picture object
       };
 
-      console.log("Sending to backend:", {
-        accessToken: accessToken,
-        userInfo,
-      });
-
       // Call our backend API
       facebookLoginMutation.mutate({
         accessToken: accessToken,
         userInfo,
       });
     } else {
-      console.error("No access token in response:", response);
       console.error("Facebook login failed:", response);
       if (onError) {
         onError(new Error("Facebook login failed - no access token"));
@@ -149,10 +131,7 @@ const FacebookLoginButton = ({
 
   // Manual Facebook login function
   const handleManualFacebookLogin = async () => {
-    console.log("Manual Facebook login clicked");
-
     if (!window.FB) {
-      console.log("Facebook SDK not loaded yet, loading now...");
       await loadFacebookSDK();
     }
 
@@ -161,13 +140,10 @@ const FacebookLoginButton = ({
       return;
     }
 
-    console.log("Facebook SDK is ready, checking login status...");
     window.FB.getLoginStatus((response) => {
-      console.log("Facebook login status:", response);
-
       if (response.status === "connected") {
         // Already logged in
-        console.log("Already connected, getting user info...");
+
         window.FB.api("/me", { fields: fields }, (userInfo) => {
           console.log("User info:", userInfo);
           handleFacebookResponse({
