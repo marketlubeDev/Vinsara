@@ -361,8 +361,10 @@ const facebookLogin = catchAsync(async (req, res, next) => {
       facebookId: userInfo.id,
       email: userInfo.email,
       name: userInfo.name,
-      picture: userInfo.picture,
+      picture: userInfo.picture?.data?.url || userInfo.picture || null,
     };
+
+    console.log("Facebook login attempt with data:", facebookData);
 
     // Find or create user
     const result = await findOrCreateFacebookUser(facebookData);
@@ -398,7 +400,11 @@ const facebookLogin = catchAsync(async (req, res, next) => {
     });
   } catch (error) {
     console.error("Facebook login error:", error);
-    return next(new AppError("Facebook authentication failed", 500));
+    console.error("Error message:", error.message);
+    console.error("Error stack:", error.stack);
+    return next(
+      new AppError(error.message || "Facebook authentication failed", 500)
+    );
   }
 });
 

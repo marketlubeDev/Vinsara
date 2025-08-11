@@ -118,7 +118,7 @@ const FacebookLoginButton = ({
         id: userID,
         name: response.name,
         email: response.email || `${userID}@facebook.com`, // Fallback email if not provided
-        picture: response.picture?.data?.url || response.picture,
+        picture: response.picture, // Send the entire picture object
       };
 
       console.log("Sending to backend:", {

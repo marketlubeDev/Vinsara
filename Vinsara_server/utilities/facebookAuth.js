@@ -1,4 +1,4 @@
-const NormalUser = require("../model/userModel");
+const { NormalUser } = require("../model/userModel");
 const createToken = require("./createToken");
 
 /**
@@ -30,13 +30,15 @@ const findOrCreateFacebookUser = async (facebookData) => {
         // Create new user with Facebook data
         user = new NormalUser({
           email,
-          username: name,
+          username:
+            email.split("@")[0] || name.replace(/\s+/g, "").toLowerCase(), // Generate username from email or name
           facebookId,
           facebookEmail: email,
           facebookName: name,
           facebookPicture: picture,
           authProvider: "facebook",
           isEmailVerified: true,
+          role: "user", // Ensure role is set
         });
         await user.save();
       }
