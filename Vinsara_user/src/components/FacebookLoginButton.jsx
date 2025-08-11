@@ -6,6 +6,9 @@ import { useFacebookLogin } from "../hooks/queries/facebookAuth";
 if (typeof window !== "undefined") {
   window.fbAsyncInit = function () {
     console.log("Facebook SDK initialized");
+    if (window.FB) {
+      window.FB.AppEvents.logPageView();
+    }
   };
 }
 
@@ -31,35 +34,53 @@ const FacebookLoginButton = ({
 
   const handleFacebookResponse = (response) => {
     console.log("Facebook response received:", response);
+    console.log("Response keys:", Object.keys(response));
+    console.log("Access token:", response.accessToken);
+    console.log("UserID:", response.userID);
 
+    // Handle different response statuses
     if (response.status === "unknown") {
       console.error("User cancelled login or did not fully authorize.");
       return;
     }
 
-    if (response.accessToken) {
+    if (response.status === "not_authorized") {
+      console.error(
+        "User is logged into Facebook but has not authorized the app."
+      );
+      return;
+    }
+
+    // Check different possible response formats
+    const accessToken =
+      response.accessToken || response.authResponse?.accessToken;
+    const userID =
+      response.userID || response.id || response.authResponse?.userID;
+
+    if (accessToken) {
       // Extract user info from Facebook response
       const userInfo = {
-        id: response.userID,
+        id: userID,
         name: response.name,
-        email: response.email || `${response.userID}@facebook.com`, // Fallback email if not provided
-        picture: response.picture?.data?.url,
+        email: response.email || `${userID}@facebook.com`, // Fallback email if not provided
+        picture: response.picture?.data?.url || response.picture,
       };
 
       console.log("Sending to backend:", {
-        accessToken: response.accessToken,
+        accessToken: accessToken,
         userInfo,
       });
 
       // Call our backend API
       facebookLoginMutation.mutate({
-        accessToken: response.accessToken,
+        accessToken: accessToken,
         userInfo,
       });
     } else {
+      console.error("No access token in response:", response);
       console.error("Facebook login failed:", response);
       if (onError) {
-        onError(new Error("Facebook login failed"));
+        onError(new Error("Facebook login failed - no access token"));
       }
     }
   };
@@ -76,7 +97,10 @@ const FacebookLoginButton = ({
       appId="545878321879765"
       fields={fields}
       scope={scope}
-      callback={(res) => console.log(res, "res")}
+      callback={(response) => {
+        console.log("Facebook callback triggered with response:", response);
+        handleFacebookResponse(response);
+      }}
       onFailure={(error) => {
         console.error("Facebook SDK error:", error);
         if (onError) onError(error);
@@ -86,6 +110,8 @@ const FacebookLoginButton = ({
       version="v18.0"
       xfbml={false}
       cookie={false}
+      autoLoad={false}
+      returnScopes={true}
       render={(renderProps) => {
         console.log("Facebook render props:", renderProps);
         return (
@@ -93,7 +119,22 @@ const FacebookLoginButton = ({
             type="button"
             onClick={() => {
               console.log("Facebook button clicked!");
-              renderProps.onClick();
+              console.log("RenderProps onClick:", renderProps.onClick);
+              console.log("Is button disabled?", renderProps.isDisabled);
+
+              // Check if Facebook SDK is loaded
+              if (window.FB) {
+                console.log("Facebook SDK is loaded");
+                console.log("FB SDK version:", window.FB.version);
+              } else {
+                console.error("Facebook SDK is NOT loaded!");
+              }
+
+              try {
+                renderProps.onClick();
+              } catch (error) {
+                console.error("Error calling Facebook login:", error);
+              }
             }}
             disabled={isLoading || renderProps.isDisabled}
             className={`facebook-login-button ${className}`}
