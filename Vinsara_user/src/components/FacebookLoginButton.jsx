@@ -19,9 +19,14 @@ const FacebookLoginButton = ({
       const userInfo = {
         id: response.userID,
         name: response.name,
-        email: response.email,
+        email: response.email || `${response.userID}@facebook.com`, // Fallback email if not provided
         picture: response.picture?.data?.url,
       };
+
+      console.log("Sending to backend:", {
+        accessToken: response.accessToken,
+        userInfo,
+      });
 
       // Call our backend API
       facebookLoginMutation.mutate({
@@ -36,11 +41,18 @@ const FacebookLoginButton = ({
     }
   };
 
+  // Determine which permissions to request based on environment
+  // Note: 'email' permission requires app review for production apps
+  // During development, it works for app admins, developers, and testers only
+
+  const scope = "public_profile,email";
+  const fields = "name,email,picture";
+
   return (
     <FacebookLogin
       appId="545878321879765"
-      fields="name,email,picture"
-      scope="public_profile,email"
+      fields={fields}
+      scope={scope}
       callback={handleFacebookResponse}
       render={(renderProps) => (
         <button
