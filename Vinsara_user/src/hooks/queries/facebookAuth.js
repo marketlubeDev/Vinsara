@@ -16,6 +16,7 @@ export const useFacebookLogin = (onSuccess, onError) => {
     onSuccess: (data) => {
       // Store token
       localStorage.setItem("user-auth-token", data.token);
+      console.log(data, "data");
 
       // Update Redux state
       dispatch(setUser(data.content?.user));
