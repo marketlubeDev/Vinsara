@@ -76,7 +76,7 @@ const FacebookLoginButton = ({
       appId="545878321879765"
       fields={fields}
       scope={scope}
-      callback={handleFacebookResponse}
+      callback={(res) => console.log(res, "res")}
       onFailure={(error) => {
         console.error("Facebook SDK error:", error);
         if (onError) onError(error);
