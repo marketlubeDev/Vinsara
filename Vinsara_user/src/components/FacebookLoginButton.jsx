@@ -92,6 +92,91 @@ const FacebookLoginButton = ({
   const scope = "public_profile,email";
   const fields = "name,email,picture";
 
+  // Manual Facebook login function
+  const handleManualFacebookLogin = () => {
+    console.log("Manual Facebook login clicked");
+
+    if (!window.FB) {
+      console.error("Facebook SDK not loaded!");
+      return;
+    }
+
+    window.FB.getLoginStatus((response) => {
+      console.log("Facebook login status:", response);
+
+      if (response.status === "connected") {
+        // Already logged in
+        console.log("Already connected, getting user info...");
+        window.FB.api("/me", { fields: fields }, (userInfo) => {
+          console.log("User info:", userInfo);
+          handleFacebookResponse({
+            ...response.authResponse,
+            ...userInfo,
+            status: response.status,
+          });
+        });
+      } else {
+        // Not logged in, show login dialog
+        console.log("Not connected, showing login dialog...");
+        window.FB.login(
+          (loginResponse) => {
+            console.log("Login response:", loginResponse);
+            if (loginResponse.authResponse) {
+              window.FB.api("/me", { fields: fields }, (userInfo) => {
+                console.log("User info after login:", userInfo);
+                handleFacebookResponse({
+                  ...loginResponse.authResponse,
+                  ...userInfo,
+                  status: loginResponse.status,
+                });
+              });
+            }
+          },
+          { scope: scope }
+        );
+      }
+    });
+  };
+
+  // Temporary: Use manual login button for testing
+  const useManualLogin = true;
+
+  if (useManualLogin) {
+    return (
+      <button
+        type="button"
+        onClick={handleManualFacebookLogin}
+        disabled={isLoading}
+        className={`facebook-login-button ${className}`}
+      >
+        {isLoading ? (
+          <div className="loading-spinner">
+            <div className="spinner"></div>
+            <span>Signing in...</span>
+          </div>
+        ) : (
+          children || (
+            <>
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="none"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                  fill="#1877F2"
+                />
+              </svg>
+              <span>Continue with Facebook</span>
+            </>
+          )
+        )}
+      </button>
+    );
+  }
+
   return (
     <FacebookLogin
       appId="545878321879765"
@@ -131,7 +216,33 @@ const FacebookLoginButton = ({
               }
 
               try {
+                console.log("Calling renderProps.onClick()...");
                 renderProps.onClick();
+                console.log("renderProps.onClick() called successfully");
+
+                // Add a manual FB.login call as backup
+                setTimeout(() => {
+                  if (window.FB && !window.fbLoginInProgress) {
+                    console.log("Attempting manual FB.login...");
+                    window.fbLoginInProgress = true;
+                    window.FB.login(
+                      (response) => {
+                        window.fbLoginInProgress = false;
+                        console.log("Manual FB.login response:", response);
+                        if (response.authResponse) {
+                          console.log(
+                            "Got authResponse, calling handleFacebookResponse"
+                          );
+                          handleFacebookResponse({
+                            ...response.authResponse,
+                            status: response.status,
+                          });
+                        }
+                      },
+                      { scope: "public_profile,email" }
+                    );
+                  }
+                }, 100);
               } catch (error) {
                 console.error("Error calling Facebook login:", error);
               }
