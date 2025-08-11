@@ -2,14 +2,58 @@ import React, { useEffect } from "react";
 import FacebookLogin from "@greatsumini/react-facebook-login";
 import { useFacebookLogin } from "../hooks/queries/facebookAuth";
 
-// Check if Facebook SDK is loaded
-if (typeof window !== "undefined") {
-  window.fbAsyncInit = function () {
-    console.log("Facebook SDK initialized");
+// Load Facebook SDK manually
+function loadFacebookSDK() {
+  return new Promise((resolve) => {
     if (window.FB) {
-      window.FB.AppEvents.logPageView();
+      resolve();
+      return;
     }
-  };
+
+    window.fbAsyncInit = function () {
+      console.log("Facebook SDK initializing...");
+      window.FB.init({
+        appId: "545878321879765",
+        cookie: true,
+        xfbml: true,
+        version: "v18.0",
+      });
+
+      window.FB.AppEvents.logPageView();
+      console.log("Facebook SDK initialized successfully");
+      resolve();
+    };
+
+    // Load the SDK asynchronously
+    (function (d, s, id) {
+      var js,
+        fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) {
+        console.log("Facebook SDK script already exists");
+        return;
+      }
+      js = d.createElement(s);
+      js.id = id;
+      js.src = "https://connect.facebook.net/en_US/sdk.js";
+      js.onerror = function () {
+        console.error("Failed to load Facebook SDK script");
+      };
+      fjs.parentNode.insertBefore(js, fjs);
+      console.log("Facebook SDK script injected");
+    })(document, "script", "facebook-jssdk");
+
+    // Also set a timeout to check if SDK loaded
+    setTimeout(() => {
+      if (!window.FB) {
+        console.error("Facebook SDK failed to initialize after 5 seconds");
+      }
+    }, 5000);
+  });
+}
+
+// Initialize on load
+if (typeof window !== "undefined") {
+  loadFacebookSDK();
 }
 
 const FacebookLoginButton = ({
@@ -20,6 +64,17 @@ const FacebookLoginButton = ({
 }) => {
   const facebookLoginMutation = useFacebookLogin(onSuccess, onError);
   const isLoading = facebookLoginMutation.isPending;
+
+  // Ensure Facebook SDK is loaded when component mounts
+  useEffect(() => {
+    loadFacebookSDK()
+      .then(() => {
+        console.log("Facebook SDK loaded in component");
+      })
+      .catch((error) => {
+        console.error("Failed to load Facebook SDK:", error);
+      });
+  }, []);
 
   // This warning about overriding access token is expected when using
   // react-facebook-login with other Facebook SDKs on the page.
@@ -93,14 +148,20 @@ const FacebookLoginButton = ({
   const fields = "name,email,picture";
 
   // Manual Facebook login function
-  const handleManualFacebookLogin = () => {
+  const handleManualFacebookLogin = async () => {
     console.log("Manual Facebook login clicked");
 
     if (!window.FB) {
-      console.error("Facebook SDK not loaded!");
+      console.log("Facebook SDK not loaded yet, loading now...");
+      await loadFacebookSDK();
+    }
+
+    if (!window.FB) {
+      console.error("Failed to load Facebook SDK!");
       return;
     }
 
+    console.log("Facebook SDK is ready, checking login status...");
     window.FB.getLoginStatus((response) => {
       console.log("Facebook login status:", response);
 
@@ -143,37 +204,40 @@ const FacebookLoginButton = ({
 
   if (useManualLogin) {
     return (
-      <button
-        type="button"
-        onClick={handleManualFacebookLogin}
-        disabled={isLoading}
-        className={`facebook-login-button ${className}`}
-      >
-        {isLoading ? (
-          <div className="loading-spinner">
-            <div className="spinner"></div>
-            <span>Signing in...</span>
-          </div>
-        ) : (
-          children || (
-            <>
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="none"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
-                  fill="#1877F2"
-                />
-              </svg>
-              <span>Continue with Facebook</span>
-            </>
-          )
-        )}
-      </button>
+      <>
+        <div id="fb-root"></div>
+        <button
+          type="button"
+          onClick={handleManualFacebookLogin}
+          disabled={isLoading}
+          className={`facebook-login-button ${className}`}
+        >
+          {isLoading ? (
+            <div className="loading-spinner">
+              <div className="spinner"></div>
+              <span>Signing in...</span>
+            </div>
+          ) : (
+            children || (
+              <>
+                <svg
+                  width="20"
+                  height="20"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"
+                    fill="#1877F2"
+                  />
+                </svg>
+                <span>Continue with Facebook</span>
+              </>
+            )
+          )}
+        </button>
+      </>
     );
   }
 
