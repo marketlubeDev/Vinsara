@@ -45,11 +45,12 @@ const findOrCreateFacebookUser = async (facebookData) => {
     }
 
     // Generate token
-    const token = createToken(
-      { id: user._id, email: user.email },
-      process.env.SECRET_STR,
-      process.env.LOGIN_EXPIRES
-    );
+    // const token = createToken(
+    //   { id: user._id, email: user.email },
+    //   process.env.SECRET_STR,
+    //   process.env.LOGIN_EXPIRES
+    // );
+    const token = createToken(user._id, "user");
 
     return {
       user: {
